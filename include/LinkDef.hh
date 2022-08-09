@@ -9,6 +9,7 @@
 #pragma link C++ class std::vector<TBwaveform>+;
 
 #pragma link C++ class TBmidbase+;
-#pragma link C++ class TBmid+;
+#pragma link C++ class TBmid<TBwaveform>+;
+#pragma link C++ class TBevt<TBwaveform>+;
 
 #endif

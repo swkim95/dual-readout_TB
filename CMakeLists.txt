@@ -33,6 +33,11 @@ target_link_libraries(
   ${ROOT_LIBRARIES}
 )
 
+target_link_libraries(
+  read
+  ${ROOT_LIBRARIES}
+)
+
 target_include_directories(drcTB PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>

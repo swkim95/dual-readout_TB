@@ -1,189 +1,80 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <stdexcept>
 
 #include "TBmid.h"
+#include "TBread.h"
+#include "TBevt.h"
+
+#include "TFile.h"
+#include "TTree.h"
 
 int main(void) {
-  int channel;
-  FILE *fp;
-  int file_size;
-  int nevt;
-  char data[64];
-  short adc[32736];
-  int evt;
-  int data_length;
-  int run_number;
-  int tcb_trig_type;
-  int tcb_trig_number;
-  long long tcb_trig_time;
-  int mid;
-  int local_trig_number;
-  int local_trigger_pattern;
-  long long local_trig_time;
-  long long diff_time;
-  long long fine_time;
-  long long coarse_time;
-  int itmp;
-  long long ltmp;
-  int i;
-  int cont;
-
   // get # of events in file
-  fp = fopen("cal_wave_0.dat", "rb");
+  FILE* fp = fopen("cal_wave_1_117.dat", "rb");
   fseek(fp, 0L, SEEK_END);
-  file_size = ftell(fp);
+  int file_size = ftell(fp);
   fclose(fp);
-  nevt = file_size / 65536;
+  int nevt = file_size / 65536;
 
-  printf("-----------------------------------------------------------------------\n");
-  fp = fopen("cal_wave_0.dat", "rb");
+  std::vector<std::string> filenames {
+    "cal_wave_1_117.dat",
+    "cal_wave_2_117.dat",
+    "cal_wave_3_117.dat",
+    "cal_wave_4_117.dat",
+    "cal_wave_5_117.dat",
+    "cal_wave_6_117.dat",
+    "cal_wave_7_117.dat",
+    "cal_wave_8_117.dat",
+    "cal_wave_9_117.dat",
+    "cal_wave_10_117.dat",
+    "cal_wave_11_117.dat",
+    "cal_wave_12_117.dat",
+    "cal_wave_13_117.dat",
+    "cal_wave_14_117.dat",
+    "cal_wave_15_117.dat"
+  };
 
-  for (evt = 0; evt < 10; evt++) {
-    // read header
-    fread(data, 1, 64, fp);
+  std::vector<FILE*> files;
+  files.reserve(filenames.size());
 
-    // data length
-    data_length = data[0] & 0xFF;
-    itmp = data[1] & 0xFF;
-    itmp = itmp << 8;
-    data_length = data_length + itmp;
-    itmp = data[2] & 0xFF;
-    itmp = itmp << 16;
-    data_length = data_length + itmp;
-    itmp = data[3] & 0xFF;
-    itmp = itmp << 24;
-    data_length = data_length + itmp;
+  for (unsigned int idx = 0; idx < filenames.size(); idx++)
+    files.emplace_back( fopen(filenames.at(idx).c_str(), "rb") );
 
-    // run number
-    run_number = data[4] & 0xFF;
-    itmp = data[5] & 0xFF;
-    itmp = itmp << 8;
-    run_number = run_number + itmp;
+  TBread reader = TBread();
+  auto anevt = TBevt<TBwaveform>();
+  TFile* rootfile = TFile::Open("test.root","RECREATE");
+  TTree* roottree = new TTree("testtree","testtree");
+  roottree->Branch("TBevt",&anevt);
 
-    // trigger type
-    tcb_trig_type = data[6] & 0xFF;
+  for (unsigned ievt = 0; ievt < nevt; ievt++) {
+    std::vector<TBmid<TBwaveform>> mids;
+    mids.reserve(files.size());
 
-    // TCB trigger #
-    tcb_trig_number = data[7] & 0xFF;
-    itmp = data[8] & 0xFF;
-    itmp = itmp << 8;
-    tcb_trig_number = tcb_trig_number + itmp;
-    itmp = data[9] & 0xFF;
-    itmp = itmp << 16;
-    tcb_trig_number = tcb_trig_number + itmp;
-    itmp = data[10] & 0xFF;
-    itmp = itmp << 24;
-    tcb_trig_number = tcb_trig_number + itmp;
+    // reference mid
+    TBmid<TBwaveform> midref = reader.readWaveform(files.at(0));
+    int refevt = midref.evt();
+    mids.emplace_back(midref);
+    midref.print();
 
-    // TCB trigger time
-    fine_time = data[11] & 0xFF;
-    fine_time = fine_time * 11;     // actually * (1000 / 90)
-    coarse_time = data[12] & 0xFF;
-    ltmp = data[13] & 0xFF;
-    ltmp = ltmp << 8;
-    coarse_time = coarse_time + ltmp;
-    ltmp = data[14] & 0xFF;
-    ltmp = ltmp << 16;
-    coarse_time = coarse_time + ltmp;
-    ltmp = data[15] & 0xFF;
-    ltmp = ltmp << 24;
-    coarse_time = coarse_time + ltmp;
-    ltmp = data[16] & 0xFF;
-    ltmp = ltmp << 32;
-    coarse_time = coarse_time + ltmp;
-    ltmp = data[17] & 0xFF;
-    ltmp = ltmp << 40;
-    coarse_time = coarse_time + ltmp;
-    coarse_time = coarse_time * 1000;   // get ns
-    tcb_trig_time = fine_time + coarse_time;
+    for (unsigned int idx = 1; idx < files.size(); idx++) {
+      TBmid<TBwaveform> amid = reader.readWaveform(files.at(idx));
+      amid.print();
 
-    // mid
-    mid = data[18] & 0xFF;
+      if (amid.evt()!=refevt) // TODO tcb_trig_number difference handling
+        throw std::runtime_error("TCB trig numbers are different!");
 
-    // local trigger #
-    local_trig_number = data[19] & 0xFF;
-    itmp = data[20] & 0xFF;
-    itmp = itmp << 8;
-    local_trig_number = local_trig_number + itmp;
-    itmp = data[21] & 0xFF;
-    itmp = itmp << 16;
-    local_trig_number = local_trig_number + itmp;
-    itmp = data[22] & 0xFF;
-    itmp = itmp << 24;
-    local_trig_number = local_trig_number + itmp;
-
-    // local trigger #
-    local_trigger_pattern = data[23] & 0xFF;
-    itmp = data[24] & 0xFF;
-    itmp = itmp << 8;
-    local_trigger_pattern = local_trigger_pattern + itmp;
-    itmp = data[25] & 0xFF;
-    itmp = itmp << 16;
-    local_trigger_pattern = local_trigger_pattern + itmp;
-    itmp = data[26] & 0xFF;
-    itmp = itmp << 24;
-    local_trigger_pattern = local_trigger_pattern + itmp;
-
-    // local trigger time
-    fine_time = data[27] & 0xFF;
-    fine_time = fine_time * 11;     // actually * (1000 / 90)
-    coarse_time = data[28] & 0xFF;
-    ltmp = data[29] & 0xFF;
-    ltmp = ltmp << 8;
-    coarse_time = coarse_time + ltmp;
-    ltmp = data[30] & 0xFF;
-    ltmp = ltmp << 16;
-    coarse_time = coarse_time + ltmp;
-    ltmp = data[31] & 0xFF;
-    ltmp = ltmp << 24;
-    coarse_time = coarse_time + ltmp;
-    ltmp = data[32] & 0xFF;
-    ltmp = ltmp << 32;
-    coarse_time = coarse_time + ltmp;
-    ltmp = data[33] & 0xFF;
-    ltmp = ltmp << 40;
-    coarse_time = coarse_time + ltmp;
-    coarse_time = coarse_time * 1000;   // get ns
-    local_trig_time = fine_time + coarse_time;
-
-    diff_time = local_trig_time - tcb_trig_time;
-    printf("evt = %d, data length = %d, run # = %d, mid = %d\n", evt, data_length, run_number, mid);
-    printf("trigger type = %X, local trigger pattern = %X\n", tcb_trig_type, local_trigger_pattern);
-    printf("TCB trigger # = %d, local trigger # = %d\n", tcb_trig_number, local_trig_number);
-    printf("TCB trigger time = %lld, local trigger time = %lld, difference = %lld\n", tcb_trig_time, local_trig_time, diff_time);
-    printf("-----------------------------------------------------------------------\n");
-
-    // read waveform
-    fread(adc, 2, 32736, fp);
-
-    unsigned channelsize = 32;
-
-    auto amid = TBmid<TBwaveform>(evt,run_number,mid);
-    amid.setTCB(tcb_trig_type,tcb_trig_number,tcb_trig_time);
-    amid.setLocal(local_trig_number,local_trigger_pattern,local_trig_time);
-    amid.setChannelSize(channelsize);
-
-    std::vector<TBwaveform> waveforms;
-    waveforms.reserve(channelsize);
-
-    for (unsigned int idx = 0; idx < channelsize; idx++) {
-      auto awave = TBwaveform();
-      awave.setChannel(idx);
-      awave.init();
-      waveforms.emplace_back(awave);
+      mids.emplace_back(amid);
     }
 
-    // fill waveform for channel
-    for (i = 0; i < 1023; i++) {
-      for (unsigned int idx = 0; idx < channelsize; idx++)
-        waveforms.at(idx).fill(i,adc[i*32+idx]); // should be always 32 here
-    }
+    anevt.set(mids);
 
-    amid.setChannels(waveforms);
+    roottree->Fill();
   }
 
-  fclose(fp);
+  rootfile->WriteTObject(roottree);
+  rootfile->Close();
 
   return 0;
 }

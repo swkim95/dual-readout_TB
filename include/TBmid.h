@@ -30,6 +30,7 @@ private:
 
 class TBmidbase {
 public:
+  TBmidbase();
   TBmidbase(int ev, int ru, int mi);
   ~TBmidbase() {}
 
@@ -49,6 +50,8 @@ public:
 
   int channelsize() const { return channelsize_; }
   void setChannelSize(int chsize) { channelsize_ = chsize; }
+
+  void print();
 private:
   // metadata
   int evt_;
@@ -66,6 +69,7 @@ private:
 template <class T> // waveform or fastmode
 class TBmid : public TBmidbase {
 public:
+  TBmid();
   TBmid(int ev, int ru, int mi);
   ~TBmid() {}
 
