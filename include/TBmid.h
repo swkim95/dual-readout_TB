@@ -9,18 +9,18 @@ public:
   ~TBwaveform() {}
 
   void init();
-  void finish() { filled_ = true; }
-  bool isFilled() const { return filled_; }
 
   void setChannel(int ch) { channel_ = ch; }
   int channel() const { return channel_; }
 
   std::vector<short> waveform() const { return waveform_; }
 
+  std::vector<float> pedcorrectedWaveform(float ped) const;
+  float pedcorrectedADC(float ped) const;
+
   void fill(unsigned int bin, short val) { waveform_.at(bin) = val; }
 private:
   int channel_;
-  bool filled_;
   std::vector<short> waveform_;
 };
 
@@ -49,9 +49,10 @@ public:
   void setLocal(int nu, int pa, long long ti);
 
   int channelsize() const { return channelsize_; }
-  void setChannelSize(int chsize) { channelsize_ = chsize; }
 
   void print();
+protected:
+  int channelsize_;
 private:
   // metadata
   int evt_;
@@ -63,7 +64,6 @@ private:
   int local_trig_number_;
   int local_trigger_pattern_;
   long long local_trig_time_;
-  int channelsize_;
 };
 
 template <class T> // waveform or fastmode
@@ -74,7 +74,7 @@ public:
   ~TBmid() {}
 
   const T channel(unsigned int idx) const { return channels_.at(idx); }
-  void setChannels(std::vector<T> ch) { channels_ = ch; }
+  void setChannels(std::vector<T> ch);
 private:
   std::vector<T> channels_;
 };

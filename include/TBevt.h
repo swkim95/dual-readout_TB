@@ -12,6 +12,11 @@ public:
   ~TBevt() {}
 
   void set(std::vector<TBmid<T>> in) { mids_ = in; }
+  void setTCB(int tcb) { evt_ = tcb; }
+
+  TBmid<T> mid(unsigned idx) const { return mids_.at(idx); }
+  int size() const { return static_cast<int>(mids_.size()); }
+
 private:
   int evt_;
   std::vector<TBmid<T>> mids_;

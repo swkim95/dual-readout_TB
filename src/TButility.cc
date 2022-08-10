@@ -95,3 +95,32 @@ TBdetector TButility::find(const TBcid& cid) const {
 
   return mapping_.at(cid);
 }
+
+void TButility::loadped(const std::string& path) {
+  std::ifstream in;
+  in.open(path, std::ios::in);
+
+  int mid, ch;
+  float ped;
+
+  while (true) {
+    in >> mid >> ch >> ped;
+
+    if (!in.good())
+      break;
+
+    auto cid = TBcid(mid,ch);
+    pedmap_.insert(std::make_pair(cid,ped));
+  }
+
+  in.close();
+};
+
+float TButility::retrievePed(const TBcid& cid) const {
+  if (pedmap_.find(cid)==pedmap_.end()) {
+    cid.print();
+    throw std::runtime_error("TButility - cannot find pedestal of the TBcid!");
+  }
+
+  return pedmap_.at(cid);
+}

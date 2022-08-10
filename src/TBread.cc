@@ -136,14 +136,13 @@ TBmid<TBwaveform> TBread::readWaveform(FILE* fp) {
   auto amid = TBmid<TBwaveform>(tcb_trig_number,run_number,mid);
   amid.setTCB(tcb_trig_type,tcb_trig_number,tcb_trig_time);
   amid.setLocal(local_trig_number,local_trigger_pattern,local_trig_time);
-  amid.setChannelSize(channelsize);
 
   std::vector<TBwaveform> waveforms;
   waveforms.reserve(channelsize);
 
   for (unsigned int idx = 0; idx < channelsize; idx++) {
     auto awave = TBwaveform();
-    awave.setChannel(idx);
+    awave.setChannel(idx+1); // WARNING channel number 1 - 32
     awave.init();
     waveforms.emplace_back(awave);
   }

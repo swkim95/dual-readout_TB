@@ -3,10 +3,32 @@
 #include "stdio.h"
 
 TBwaveform::TBwaveform()
-: channel_(-1), filled_(false), waveform_(0) {}
+: channel_(-1), waveform_(0) {}
 
 void TBwaveform::init() {
   waveform_.resize(1024,0);
+}
+
+std::vector<float> TBwaveform::pedcorrectedWaveform(float ped) const {
+  std::vector<float> result;
+  result.reserve(waveform_.size());
+
+  for (unsigned idx = 0; idx < waveform_.size(); idx++) {
+    float abin = static_cast<float>(ped) - static_cast<float>(waveform_.at(idx));
+    result.emplace_back(abin);
+  }
+
+  return std::move(result);
+}
+
+float TBwaveform::pedcorrectedADC(float ped) const {
+  auto corrected = pedcorrectedWaveform(ped);
+  float adc = 0.;
+
+  for (unsigned idx = 0; idx < corrected.size(); idx++)
+    adc += corrected.at(idx);
+
+  return adc;
 }
 
 TBmidbase::TBmidbase()
@@ -57,5 +79,11 @@ TBmid<T>::TBmid(int ev, int ru, int mi)
 template<typename T>
 TBmid<T>::TBmid()
 : TBmidbase(), channels_(0) {}
+
+template<typename T>
+void TBmid<T>::setChannels(std::vector<T> ch) {
+  channels_ = ch;
+  channelsize_ = static_cast<int>(channels_.size());
+}
 
 template class TBmid<TBwaveform>;
