@@ -1,9 +1,7 @@
 #include "TBread.h"
 
-TBmid<TBwaveform> TBread::readWaveform(FILE* fp) {
-  int channel;
+TBmidbase TBread::readMetadata(FILE* fp) {
   char data[64];
-  short adc[32736];
   int data_length;
   int run_number;
   int tcb_trig_type;
@@ -13,13 +11,10 @@ TBmid<TBwaveform> TBread::readWaveform(FILE* fp) {
   int local_trig_number;
   int local_trigger_pattern;
   long long local_trig_time;
-  long long diff_time;
   long long fine_time;
   long long coarse_time;
   int itmp;
   long long ltmp;
-  int i;
-  int cont;
 
   // read header
   fread(data, 1, 64, fp);
@@ -128,15 +123,24 @@ TBmid<TBwaveform> TBread::readWaveform(FILE* fp) {
   coarse_time = coarse_time * 1000;   // get ns
   local_trig_time = fine_time + coarse_time;
 
+  auto amid = TBmidbase(tcb_trig_number,run_number,mid);
+  amid.setTCB(tcb_trig_type,tcb_trig_number,tcb_trig_time);
+  amid.setLocal(local_trig_number,local_trigger_pattern,local_trig_time);
+
+  return std::move(amid);
+}
+
+TBmid<TBwaveform> TBread::readWaveform(FILE* fp) {
+  const auto base = readMetadata(fp);
+
+  short adc[32736];
+
   // read waveform
   fread(adc, 2, 32736, fp);
 
   unsigned channelsize = 32;
 
-  auto amid = TBmid<TBwaveform>(tcb_trig_number,run_number,mid);
-  amid.setTCB(tcb_trig_type,tcb_trig_number,tcb_trig_time);
-  amid.setLocal(local_trig_number,local_trigger_pattern,local_trig_time);
-
+  auto amid = TBmid<TBwaveform>(base);
   std::vector<TBwaveform> waveforms;
   waveforms.reserve(channelsize);
 
@@ -148,12 +152,50 @@ TBmid<TBwaveform> TBread::readWaveform(FILE* fp) {
   }
 
   // fill waveform for channel
-  for (i = 0; i < 1023; i++) {
+  for (int i = 0; i < 1023; i++) {
     for (unsigned int idx = 0; idx < channelsize; idx++)
       waveforms.at(idx).fill(i,adc[i*32+idx]); // should be always 32 here
   }
 
   amid.setChannels(waveforms);
+
+  return std::move(amid);
+}
+
+TBmid<TBfastmode> TBread::readFastmode(FILE* fp) {
+  const auto base = readMetadata(fp);
+
+  short data[96];
+  int energy;
+  int timing;
+
+  // read fast data
+  fread(data, 2, 96, fp);
+
+  unsigned int channelsize = 32;
+
+  auto amid = TBmid<TBfastmode>(base);
+  std::vector<TBfastmode> fastmodes;
+  fastmodes.reserve(channelsize);
+
+  for (unsigned int idx = 0; idx < channelsize; idx++) {
+    auto afast = TBfastmode();
+    afast.setChannel(idx+1); // WARNING channel number 1 - 32
+
+    // fill waveform for channel to plot
+    energy = data[idx * 3 + 1] & 0xFFFF;
+    energy = energy * 65536;
+    energy = energy + (data[idx * 3] & 0xFFFF);
+
+    timing = data[idx * 3 + 2] & 0xFFFF;
+
+    afast.setAdc(energy);
+    afast.setTiming(timing);
+
+    fastmodes.emplace_back(afast);
+  }
+
+  amid.setChannels(fastmodes);
 
   return std::move(amid);
 }

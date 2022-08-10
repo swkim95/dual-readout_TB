@@ -1,6 +1,7 @@
 #include "TBmid.h"
 
 #include "stdio.h"
+#include <numeric>
 
 TBwaveform::TBwaveform()
 : channel_(-1), waveform_(0) {}
@@ -21,15 +22,14 @@ std::vector<float> TBwaveform::pedcorrectedWaveform(float ped) const {
   return std::move(result);
 }
 
-float TBwaveform::pedcorrectedADC(float ped) const {
+float TBwaveform::pedcorrectedADC(float ped, int buffer) const {
   auto corrected = pedcorrectedWaveform(ped);
-  float adc = 0.;
 
-  for (unsigned idx = 0; idx < corrected.size(); idx++)
-    adc += corrected.at(idx);
-
-  return adc;
+  return std::accumulate(corrected.rbegin()+buffer,corrected.rend(),0.);
 }
+
+TBfastmode::TBfastmode()
+: channel_(0), adc_(0), timing_(0) {}
 
 TBmidbase::TBmidbase()
 : evt_(0), run_(0), mid_(0),
@@ -81,9 +81,14 @@ TBmid<T>::TBmid()
 : TBmidbase(), channels_(0) {}
 
 template<typename T>
+TBmid<T>::TBmid(const TBmidbase& base)
+: TBmidbase(base), channels_(0) {}
+
+template<typename T>
 void TBmid<T>::setChannels(std::vector<T> ch) {
   channels_ = ch;
   channelsize_ = static_cast<int>(channels_.size());
 }
 
 template class TBmid<TBwaveform>;
+template class TBmid<TBfastmode>;

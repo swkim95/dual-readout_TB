@@ -10,6 +10,9 @@ public:
   ~TBread() {}
 
   TBmid<TBwaveform> readWaveform(FILE* fp);
+  TBmid<TBfastmode> readFastmode(FILE* fp);
+private:
+  TBmidbase readMetadata(FILE* fp);
 };
 
 #endif

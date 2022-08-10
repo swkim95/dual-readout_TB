@@ -5,3 +5,4 @@ TBevt<T>::TBevt()
 : evt_(0), mids_(0) {}
 
 template class TBevt<TBwaveform>;
+template class TBevt<TBfastmode>;

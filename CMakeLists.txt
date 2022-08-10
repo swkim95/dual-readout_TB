@@ -24,7 +24,8 @@ include(${ROOT_USE_FILE})
 ROOT_GENERATE_DICTIONARY(G__drcTB ${headers} LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/include/LinkDef.hh MODULE drcTB)
 
 add_library(drcTB SHARED ${sources} G__drcTB.cxx)
-add_executable(read read.cc ${sources} ${headers})
+add_executable(read read.cc)
+add_executable(fast fast.cc)
 
 target_include_directories(drcTB PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIRS})
 
@@ -35,6 +36,13 @@ target_link_libraries(
 
 target_link_libraries(
   read
+  drcTB
+  ${ROOT_LIBRARIES}
+)
+
+target_link_libraries(
+  fast
+  drcTB
   ${ROOT_LIBRARIES}
 )
 
@@ -57,5 +65,9 @@ install(FILES
 )
 
 install(TARGETS read EXPORT drcTBTargets
+  RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT bin
+)
+
+install(TARGETS fast EXPORT drcTBTargets
   RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT bin
 )

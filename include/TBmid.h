@@ -16,7 +16,7 @@ public:
   std::vector<short> waveform() const { return waveform_; }
 
   std::vector<float> pedcorrectedWaveform(float ped) const;
-  float pedcorrectedADC(float ped) const;
+  float pedcorrectedADC(float ped, int buffer=24) const;
 
   void fill(unsigned int bin, short val) { waveform_.at(bin) = val; }
 private:
@@ -24,9 +24,24 @@ private:
   std::vector<short> waveform_;
 };
 
-// class TBfastmode { TODO
-//
-// }
+class TBfastmode {
+public:
+  TBfastmode();
+  ~TBfastmode() {}
+
+  int adc() const { return adc_; }
+  int timing() const { return timing_; }
+  void setAdc(int ad) { adc_ = ad; }
+  void setTiming(int ti) { timing_ = ti; }
+
+  void setChannel(int ch) { channel_ = ch; }
+  int channel() const { return channel_; }
+
+private:
+  int channel_;
+  int adc_;
+  int timing_;
+};
 
 class TBmidbase {
 public:
@@ -70,6 +85,7 @@ template <class T> // waveform or fastmode
 class TBmid : public TBmidbase {
 public:
   TBmid();
+  TBmid(const TBmidbase& base);
   TBmid(int ev, int ru, int mi);
   ~TBmid() {}
 

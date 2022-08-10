@@ -6,10 +6,12 @@
 #pragma link off all functions;
 
 #pragma link C++ class TBwaveform+;
-#pragma link C++ class std::vector<TBwaveform>+;
+#pragma link C++ class TBfastmode+;
 
 #pragma link C++ class TBmidbase+;
 #pragma link C++ class TBmid<TBwaveform>+;
+#pragma link C++ class TBmid<TBfastmode>+;
 #pragma link C++ class TBevt<TBwaveform>+;
+#pragma link C++ class TBevt<TBfastmode>+;
 
 #endif
