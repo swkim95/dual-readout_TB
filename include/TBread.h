@@ -4,15 +4,29 @@
 #include "TBmid.h"
 #include <string>
 
+#include <boost/python.hpp>
+
 class TBread {
 public:
   TBread() {}
   ~TBread() {}
 
+  void ntuplizeWaveform(const boost::python::list& alist, const std::string& output);
+  void ntuplizeFastmode(const boost::python::list& alist, const std::string& output);
+
+  std::string mappingpath() const { return mappingpath_; }
+  void setMappingPath(const std::string& path) { mappingpath_ = path; }
+
+  std::string pedestalpath() const { return pedestalpath_; }
+  void setPedestalPath(const std::string& path) { pedestalpath_ = path; }
+
   TBmid<TBwaveform> readWaveform(FILE* fp);
   TBmid<TBfastmode> readFastmode(FILE* fp);
 private:
   TBmidbase readMetadata(FILE* fp);
+
+  std::string mappingpath_;
+  std::string pedestalpath_;
 };
 
 #endif

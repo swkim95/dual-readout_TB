@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "TBmid.h"
+#include "TBdetector.h"
 
 template <class T>
 class TBevt {
@@ -16,6 +17,8 @@ public:
 
   TBmid<T> mid(unsigned idx) const { return mids_.at(idx); }
   int size() const { return static_cast<int>(mids_.size()); }
+
+  const T data(const TBcid& cid) const;
 
 private:
   int evt_;

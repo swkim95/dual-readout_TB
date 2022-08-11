@@ -29,7 +29,7 @@ float TBwaveform::pedcorrectedADC(float ped, int buffer) const {
 }
 
 TBfastmode::TBfastmode()
-: channel_(0), adc_(0), timing_(0) {}
+: channel_(-1), adc_(0), timing_(0) {}
 
 TBmidbase::TBmidbase()
 : evt_(0), run_(0), mid_(0),

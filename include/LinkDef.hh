@@ -5,6 +5,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
+#pragma link C++ class TBcid+;
 #pragma link C++ class TBwaveform+;
 #pragma link C++ class TBfastmode+;
 

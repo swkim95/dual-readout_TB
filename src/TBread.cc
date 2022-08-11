@@ -1,4 +1,11 @@
 #include "TBread.h"
+#include "TBmid.h"
+#include "TBevt.h"
+
+#include <stdexcept>
+
+#include "TFile.h"
+#include "TTree.h"
 
 TBmidbase TBread::readMetadata(FILE* fp) {
   char data[64];
@@ -198,4 +205,116 @@ TBmid<TBfastmode> TBread::readFastmode(FILE* fp) {
   amid.setChannels(fastmodes);
 
   return std::move(amid);
+}
+
+void TBread::ntuplizeWaveform(const boost::python::list& alist, const std::string& output) {
+  std::vector<std::string> filenames;
+
+  for (unsigned idx = 0; idx < boost::python::len(alist); idx++)
+    filenames.push_back(boost::python::extract<std::string>(alist[idx]));
+
+  // get # of events in file
+  FILE* fp = fopen(filenames.front().c_str(), "rb");
+  fseek(fp, 0L, SEEK_END);
+  int file_size = ftell(fp);
+  fclose(fp);
+  int nevt = file_size / 65536;
+
+  std::vector<FILE*> files;
+  files.reserve(filenames.size());
+
+  for (unsigned int idx = 0; idx < filenames.size(); idx++)
+    files.emplace_back( fopen(filenames.at(idx).c_str(), "rb") );
+
+  auto anevt = TBevt<TBwaveform>();
+  TFile* rootfile = TFile::Open(output.c_str(),"RECREATE");
+  auto roottree = new TTree("events","waveform events");
+  roottree->Branch("TBevt",&anevt);
+
+  for (unsigned ievt = 0; ievt < nevt; ievt++) {
+    // fill TBevt
+    std::vector<TBmid<TBwaveform>> mids;
+    mids.reserve(files.size());
+
+    // reference mid
+    TBmid<TBwaveform> midref = readWaveform(files.at(0));
+    int refevt = midref.evt();
+    mids.emplace_back(midref);
+    anevt.setTCB(refevt);
+
+    for (unsigned int idx = 1; idx < files.size(); idx++) {
+      TBmid<TBwaveform> amid = readWaveform(files.at(idx));
+
+      if (amid.evt()!=refevt) // TODO tcb_trig_number difference handling
+        throw std::runtime_error("TCB trig numbers are different!");
+
+      mids.emplace_back(amid);
+    }
+
+    anevt.set(mids);
+
+    roottree->Fill();
+  }
+
+  for (unsigned int idx = 0; idx < files.size(); idx++)
+    fclose(files.at(idx));
+
+  rootfile->WriteTObject(roottree);
+  rootfile->Close();
+}
+
+void TBread::ntuplizeFastmode(const boost::python::list& alist, const std::string& output) {
+  std::vector<std::string> filenames;
+
+  for (unsigned idx = 0; idx < boost::python::len(alist); idx++)
+    filenames.push_back(boost::python::extract<std::string>(alist[idx]));
+
+  // get # of events in file
+  FILE* fp = fopen(filenames.front().c_str(), "rb");
+  fseek(fp, 0L, SEEK_END);
+  int file_size = ftell(fp);
+  fclose(fp);
+  int nevt = file_size / 256;
+
+  std::vector<FILE*> files;
+  files.reserve(filenames.size());
+
+  for (unsigned int idx = 0; idx < filenames.size(); idx++)
+    files.emplace_back( fopen(filenames.at(idx).c_str(), "rb") );
+
+  auto anevt = TBevt<TBfastmode>();
+  TFile* rootfile = TFile::Open(output.c_str(),"RECREATE");
+  auto roottree = new TTree("events","fastmode events");
+  roottree->Branch("TBevt",&anevt);
+
+  for (unsigned ievt = 0; ievt < nevt; ievt++) {
+    // fill TBevt
+    std::vector<TBmid<TBfastmode>> mids;
+    mids.reserve(files.size());
+
+    // reference mid
+    TBmid<TBfastmode> midref = readFastmode(files.at(0));
+    int refevt = midref.evt();
+    mids.emplace_back(midref);
+    anevt.setTCB(refevt);
+
+    for (unsigned int idx = 1; idx < files.size(); idx++) {
+      TBmid<TBfastmode> amid = readFastmode(files.at(idx));
+
+      if (amid.evt()!=refevt) // TODO tcb_trig_number difference handling
+        throw std::runtime_error("TCB trig numbers are different!");
+
+      mids.emplace_back(amid);
+    }
+
+    anevt.set(mids);
+
+    roottree->Fill();
+  }
+
+  for (unsigned int idx = 0; idx < files.size(); idx++)
+    fclose(files.at(idx));
+
+  rootfile->WriteTObject(roottree);
+  rootfile->Close();
 }
