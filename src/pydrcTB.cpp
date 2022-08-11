@@ -1,5 +1,5 @@
 #include "TBread.h"
-#include "TBevt.h"
+#include "TBdetector.h"
 #include <boost/python.hpp>
 
 BOOST_PYTHON_MODULE(pydrcTB) {
@@ -8,4 +8,8 @@ BOOST_PYTHON_MODULE(pydrcTB) {
     .def("ntuplizeFastmode", &TBread::ntuplizeFastmode)
     .def("setMappingPath", &TBread::setMappingPath)
     .def("setPedestalPath", &TBread::setPedestalPath);
+
+  boost::python::class_<TBcid>("TBcid")
+    .def("mid", &TBcid::mid)
+    .def("channel", &TBcid::channel);
 }

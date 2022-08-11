@@ -48,6 +48,7 @@ public:
 
   bool isSiPM() const { return det_==detid::SiPM; }
   bool isModule() const;
+  bool isNull() const { return det_==detid::nulldet; }
 
   void encodeModule(int mod, int tow, bool isc);
   void encodeSiPM(int plate, int column);

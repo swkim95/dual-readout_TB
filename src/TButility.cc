@@ -88,10 +88,8 @@ void TButility::loading(const std::string& path) {
 }
 
 TBdetector TButility::find(const TBcid& cid) const {
-  if (mapping_.find(cid)==mapping_.end()) {
-    cid.print();
-    throw std::runtime_error("TButility - cannot find mapping of the TBcid!");
-  }
+  if (mapping_.find(cid)==mapping_.end())
+    return TBdetector(TBdetector::detid::nulldet);
 
   return mapping_.at(cid);
 }
