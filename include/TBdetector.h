@@ -40,6 +40,7 @@ public:
     muon
   };
 public:
+  TBdetector();
   TBdetector(detid in);
   ~TBdetector() {}
 

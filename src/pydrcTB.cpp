@@ -1,5 +1,6 @@
 #include "TBread.h"
 #include "TBdetector.h"
+#include "TButility.h"
 #include <boost/python.hpp>
 
 BOOST_PYTHON_MODULE(pydrcTB) {
@@ -9,7 +10,23 @@ BOOST_PYTHON_MODULE(pydrcTB) {
     .def("setMappingPath", &TBread::setMappingPath)
     .def("setPedestalPath", &TBread::setPedestalPath);
 
-  boost::python::class_<TBcid>("TBcid")
+  boost::python::class_<TBcid>("TBcid", boost::python::init<int, int>())
     .def("mid", &TBcid::mid)
     .def("channel", &TBcid::channel);
+
+  boost::python::class_<TBdetector>("TBdetector")
+    .def("isSiPM", &TBdetector::isSiPM)
+    .def("isModule", &TBdetector::isModule)
+    .def("isNull", &TBdetector::isNull)
+    .def("module", &TBdetector::module)
+    .def("tower", &TBdetector::tower)
+    .def("isCeren", &TBdetector::isCeren)
+    .def("plate", &TBdetector::plate)
+    .def("column", &TBdetector::column);
+
+  boost::python::class_<TButility>("TButility")
+    .def("loading", &TButility::loading)
+    .def("loadped", &TButility::loadped)
+    .def("find", &TButility::find)
+    .def("retrievePed", &TButility::retrievePed);
 }

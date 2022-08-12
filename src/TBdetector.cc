@@ -16,6 +16,9 @@ void TBcid::print() const {
   std::cout<< "TBcid::mid()=" << mid_ << " TBcid::channel()=" << channel_ << std::endl;
 }
 
+TBdetector::TBdetector()
+: det_(TBdetector::detid::nulldet), id_(0) {}
+
 TBdetector::TBdetector(TBdetector::detid in)
 : det_(in), id_(0) {}
 
