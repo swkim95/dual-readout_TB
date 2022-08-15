@@ -159,7 +159,7 @@ TBmid<TBwaveform> TBread::readWaveform(FILE* fp) {
   }
 
   // fill waveform for channel
-  for (int i = 0; i < 1023; i++) {
+  for (int i = 0; i < 1024; i++) {
     for (unsigned int idx = 0; idx < channelsize; idx++)
       waveforms.at(idx).fill(i,adc[i*32+idx]); // should be always 32 here
   }
