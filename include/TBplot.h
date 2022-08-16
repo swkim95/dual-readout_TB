@@ -8,6 +8,7 @@
 #include "TCanvas.h"
 #include "TH1.h"
 #include "TH2.h"
+#include "TFile.h"
 
 #include "TBdetector.h"
 #include "TBmid.h"
@@ -22,6 +23,7 @@ public:
   };
 
   TBplotbase(int ww, int wh, TString canvasname, TBplotbase::kind plotkind);
+  TBplotbase(int ww, int wh, const std::string& canvasname, const std::string& plotkind);
   ~TBplotbase() {}
 
   void init();
@@ -81,6 +83,7 @@ public:
   TBplot(int ww, int wh, TString plotname, TBplotbase::kind plotkind);
   TBplot(int ww, int wh, TString plotname, TBplotbase::kind plotkind, std::vector<TH1D*> plot1D);
   TBplot(int ww, int wh, TString plotname, TBplotbase::kind plotkind, std::vector<TH2D*> plot2D);
+  TBplot(int ww, int wh, const std::string& plotname, const std::string& plotkind);
   ~TBplot() {}
 
   void init_plots();
@@ -88,6 +91,12 @@ public:
   TH2D* aPlot2D(int idx) { return plots2D_.at(idx); }
   int getPlotSize1D() const { return plots1D_.size(); }
   int getPlotSize2D() const { return plots2D_.size(); }
+
+  void openFile(const std::string& name);
+  void closeFile();
+
+  void loadTH1D(const std::string& name, int num);
+  void loadTH2D(const std::string& name, int num);
 
   void fillWaveform(TBdetector detid, std::vector<short> awave);
   void fillADC(TBdetector detid, float adc);
@@ -103,6 +112,7 @@ private:
   double distMax = 5000.;
 
   TString plotname_;
+  TFile* dqmFile_;
 
   kind plotkind_;
   std::vector<TH1D*> plots1D_;

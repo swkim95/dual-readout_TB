@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <stdexcept>
 
 #include "TCanvas.h"
 #include "TPad.h"
@@ -9,6 +10,24 @@
 
 TBplotbase::TBplotbase(int ww, int wh, TString canvasname, TBplotbase::kind plotkind)
 : plotkind_(plotkind), pads_(0), savename_(0), canvasname_(canvasname) {
+  c_ = new TCanvas((TString)(canvasname_+std::to_string(plotkind_)), (TString)(canvasname_+std::to_string(plotkind_)), ww, wh);
+
+  init();
+}
+
+TBplotbase::TBplotbase(int ww, int wh, const std::string& canvasname, const std::string& plotkind)
+: canvasname_(canvasname), savename_("") {
+  if (plotkind=="hitmap")
+    plotkind_ = kind::hitmap;
+  else if (plotkind=="distribution")
+    plotkind_ = kind::distribution;
+  else if (plotkind=="waveform")
+    plotkind_ = kind::waveform;
+  else if (plotkind=="sipmHitMap")
+    plotkind_ = kind::sipmHitMap;
+  else
+    throw std::runtime_error("TBplotbase - please check TBplotbase::kind!");
+
   c_ = new TCanvas((TString)(canvasname_+std::to_string(plotkind_)), (TString)(canvasname_+std::to_string(plotkind_)), ww, wh);
 
   init();
@@ -39,6 +58,9 @@ TBplot::TBplot(int ww, int wh, TString plotname, TBplotbase::kind plotkind, std:
 
 TBplot::TBplot(int ww, int wh, TString plotname, TBplotbase::kind plotkind, std::vector<TH2D*> plot2D)
 : TBplotbase(ww, wh, plotname, plotkind), plots1D_(0), plots2D_(plot2D), plotkind_(plotkind), plotname_(plotname) {}
+
+TBplot::TBplot(int ww, int wh, const std::string& plotname, const std::string& plotkind)
+: TBplotbase(ww, wh, plotname, plotkind), plots1D_(0), plots2D_(0) {}
 
 void TBplot::init_plots() {
   if ( plotkind_ == TBplotbase::kind::sipmHitMap ) {
@@ -120,6 +142,24 @@ void TBplot::init_plots() {
   } else {
     throw std::runtime_error("Available plot : Hitmap, ADC distribution, Waveform");
   }
+}
+
+void TBplot::openFile(const std::string& name) {
+  dqmFile_ = TFile::Open(name.c_str(),"READ");
+}
+
+void TBplot::closeFile() {
+  dqmFile_->Close();
+}
+
+void TBplot::loadTH1D(const std::string& name, int num) {
+  for(int i = 0; i < num; i++)
+    plots1D_.push_back((TH1D*)dqmFile_->Get((TString)(name+std::to_string(i))));
+}
+
+void TBplot::loadTH2D(const std::string& name, int num) {
+  for(int i = 0; i < num; i++)
+    plots2D_.push_back((TH2D*)dqmFile_->Get((TString)(name+std::to_string(i))));
 }
 
 void TBplot::fillWaveform( TBdetector detid, std::vector<short> awave ) {
