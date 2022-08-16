@@ -172,45 +172,45 @@ void TBmonit::MonitPlots() {
     // while (false) { // TODO error at std::runtime_error("TCB trig numbers are different! [Waveform]")
     //   if( refevt_fast == nevt_fast -1 )
     //     break;
-    
+    //
     //   std::vector<TBmid<TBfastmode>> midsFast;
     //   midsFast.reserve(filesFast.size());
-    
+    //
     //   TBmid<TBfastmode> midrefFast = readerFast.readFastmode(filesFast.at(0));
     //   int refevt_fast = midrefFast.evt();
-    
+    //
     //   midsFast.emplace_back(midrefFast);
     //   anevtFast.setTCB(refevt_fast);
     //   FastXaxis.push_back(refevt_fast);
     //   FastYaxis.push_back(midrefFast.tcb_trig_time()/1000000.);
-    
+    //
     //   for (unsigned int idx = 1; idx < filesFast.size(); idx++) {
     //     TBmid<TBfastmode> amid = readerFast.readFastmode(filesFast.at(idx));
     //     if (amid.evt()!=refevt_fast)
     //       throw std::runtime_error("TCB trig numbers are different! [Waveform]");
-    
+    //
     //     midsFast.emplace_back(amid);
     //   }
-    
+    //
     //   anevtFast.set(midsFast);
-    
+    //
     //   for (int idx = 0; idx < anevtFast.size(); idx++) {
     //     auto amid = anevtFast.mid(idx);
-    
+    //
     //     for (int jdx = 0; jdx < amid.channelsize(); jdx++) {
     //       const auto achannel = amid.channel(jdx);
     //       const auto cid = TBcid(amid.mid(),achannel.channel());
-    
+    //
     //       float adc = achannel.adc();
     //       HitMapAccuFast->fillADC(utility.find(cid), adc/(float)nevt_fast);
     //       disMapAccuFast->fillADC(utility.find(cid), adc);
     //     }
     //   }
-    
+    //
     //   if (refevt_fast == refevt_wave)
     //     break;
     // }
-
+	//
     // for (unsigned int idx = 0; idx < fastList_.size(); idx++) {
     //   auto aMidWave = anevtWave.mid(idx);
     //   auto aMidFast = anevtFast.mid(idx);
@@ -228,18 +228,7 @@ void TBmonit::MonitPlots() {
     //     comparisonWAVEvsFAST->Fill(adcWave, adcFast);
     //   }
     // }
-
-    // if ( ievt == 10 ) {
-    //     wavMapWave->Draw();
-    //     wavMapWave->setSaveName((TString)("_WAVEFORM_Waveform"));
-    //     wavMapWave->SavePng();
-    // }
   }
-
-  // HitMapAccuWave->Draw();
-  // disMapAccuWave->Draw();
-  // HitMapAccuFast->Draw();
-  // disMapAccuFast->Draw();
 
   // std::vector<float> FastYaxis__;
   // long long refTime = FastYaxis.at(0);
