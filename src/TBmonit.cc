@@ -101,8 +101,8 @@ void TBmonit::MonitPlots() {
 
     midsWave.emplace_back(midrefWave);
     anevtWave.setTCB(refevt_wave);
-    WaveXaxis.push_back(refevt_wave);
-    WaveYaxis.push_back(midrefWave.tcb_trig_time()/1000000.);
+    // WaveXaxis.push_back(refevt_wave);
+    // WaveYaxis.push_back(midrefWave.tcb_trig_time()/1000000.);
 
     for (unsigned int idx = 1; idx < filesWave.size(); idx++) {
       TBmid<TBwaveform> amid = readerWave.readWaveform(filesWave.at(idx));
@@ -134,8 +134,40 @@ void TBmonit::MonitPlots() {
 
     std::vector<TBmid<TBfastmode>> midsFast;
     midsFast.reserve(filesFast.size());
+  
+    TBmid<TBfastmode> midrefFast = readerFast.readFastmode(filesFast.at(0));
+    int refevt_fast = midrefFast.evt();
+  
+    midsFast.emplace_back(midrefFast);
+    anevtFast.setTCB(refevt_fast);
+    // FastXaxis.push_back(refevt_fast);
+    // FastYaxis.push_back(midrefFast.tcb_trig_time()/1000000.);
+  
+    for (unsigned int idx = 1; idx < filesFast.size(); idx++) {
+      TBmid<TBfastmode> amid = readerFast.readFastmode(filesFast.at(idx));
+      if (amid.evt()!=refevt_fast)
+        throw std::runtime_error("TCB trig numbers are different! [Waveform]");
+  
+      midsFast.emplace_back(amid);
+    }
+  
+    anevtFast.set(midsFast);
+  
+    for (int idx = 0; idx < anevtFast.size(); idx++) {
+      auto amid = anevtFast.mid(idx);
+  
+      for (int jdx = 0; jdx < amid.channelsize(); jdx++) {
+        const auto achannel = amid.channel(jdx);
+        const auto cid = TBcid(amid.mid(),achannel.channel());
+  
+        float adc = achannel.adc();
+        HitMapAccuFast->fillADC(utility.find(cid), adc/(float)nevt_fast);
+        disMapAccuFast->fillADC(utility.find(cid), adc);
+      }
+    }
+    
 
-    int refevt_fast = 0;
+
 
     // while (false) { // TODO error at std::runtime_error("TCB trig numbers are different! [Waveform]")
     //   if( refevt_fast == nevt_fast -1 )
@@ -178,7 +210,7 @@ void TBmonit::MonitPlots() {
     //   if (refevt_fast == refevt_wave)
     //     break;
     // }
-
+	//
     // for (unsigned int idx = 0; idx < fastList_.size(); idx++) {
     //   auto aMidWave = anevtWave.mid(idx);
     //   auto aMidFast = anevtFast.mid(idx);
@@ -196,29 +228,7 @@ void TBmonit::MonitPlots() {
     //     comparisonWAVEvsFAST->Fill(adcWave, adcFast);
     //   }
     // }
-
-    if ( ievt == 0 ) {
-        wavMapWave->Draw();
-        wavMapWave->setSaveName((TString)("_WAVEFORM_Waveform"));
-        wavMapWave->SavePng();
-    }
   }
-
-  HitMapAccuWave->Draw();
-  HitMapAccuWave->setSaveName((TString)("_WAVEFORM_HitMap"));
-  HitMapAccuWave->SavePng();
-
-  disMapAccuWave->Draw();
-  disMapAccuWave->setSaveName((TString)("_WAVEFORM_dist"));
-  disMapAccuWave->SavePng();
-
-  HitMapAccuFast->Draw();
-  HitMapAccuFast->setSaveName((TString)("_FAST_HitMap"));
-  HitMapAccuFast->SavePng();
-
-  disMapAccuFast->Draw();
-  disMapAccuFast->setSaveName((TString)("_FAST_dist"));
-  disMapAccuFast->SavePng();
 
   // std::vector<float> FastYaxis__;
   // long long refTime = FastYaxis.at(0);
@@ -284,50 +294,20 @@ void TBmonit::MonitPlots() {
 
   TFile* plotRootFile = new TFile(outputName_.c_str(), "RECREATE");
 
-  plotRootFile->cd();
-  gDirectory->mkdir("WaveHitMap");
-
-  plotRootFile->cd();
-  gDirectory->mkdir("WaveADCDist");
-
-  plotRootFile->cd();
-  gDirectory->mkdir("WaveWaveform");
-
-  plotRootFile->cd();
-  gDirectory->mkdir("FastHitMap");
-
-  plotRootFile->cd();
-  gDirectory->mkdir("FastADCDist");
-
-  plotRootFile->cd();
-  plotRootFile->cd("WaveHitMap");
-
   for (int i = 0; i < HitMapAccuWave->getPlotSize2D(); i++)
-    HitMapAccuWave->aPlot2D(i)->Write("",TObject::kOverwrite);
-
-  plotRootFile->cd();
-  plotRootFile->cd("WaveADCDist");
+    plotRootFile->WriteTObject(HitMapAccuWave->aPlot2D(i));
 
   for (int i = 0; i < disMapAccuWave->getPlotSize1D(); i++)
-    disMapAccuWave->aPlot1D(i)->Write("",TObject::kOverwrite);
-
-  plotRootFile->cd();
-  plotRootFile->cd("WaveWaveform");
+    plotRootFile->WriteTObject(disMapAccuWave->aPlot1D(i));
 
   for (int i = 0; i < wavMapWave->getPlotSize1D(); i++)
-    wavMapWave->aPlot1D(i)->Write("",TObject::kOverwrite);
-
-  plotRootFile->cd();
-  plotRootFile->cd("FastHitMap");
+    plotRootFile->WriteTObject(wavMapWave->aPlot1D(i));
 
   for (int i = 0; i < HitMapAccuFast->getPlotSize2D(); i++)
-    HitMapAccuFast->aPlot2D(i)->Write("",TObject::kOverwrite);
-
-  plotRootFile->cd();
-  plotRootFile->cd("FastADCDist");
+    plotRootFile->WriteTObject(HitMapAccuFast->aPlot2D(i));
 
   for (int i = 0; i < disMapAccuFast->getPlotSize1D(); i++)
-    disMapAccuFast->aPlot1D(i)->Write("",TObject::kOverwrite);
+    plotRootFile->WriteTObject(disMapAccuFast->aPlot1D(i));
 
   plotRootFile->Close();
 }
