@@ -1,6 +1,7 @@
 #include "TBread.h"
 #include "TBdetector.h"
 #include "TButility.h"
+#include "TBmonit.h"
 #include <boost/python.hpp>
 
 BOOST_PYTHON_MODULE(pydrcTB) {
@@ -29,4 +30,13 @@ BOOST_PYTHON_MODULE(pydrcTB) {
     .def("loadped", &TButility::loadped)
     .def("find", &TButility::find)
     .def("retrievePed", &TButility::retrievePed);
+
+  boost::python::class_<TBmonit>("TBmonit")
+    .def("setFastmodeFiles", &TBmonit::setFastmodeFiles)
+    .def("setWaveformFiles", &TBmonit::setWaveformFiles)
+    .def("setPedestalPath", &TBmonit::setPedestalPath)
+    .def("setMappingPath", &TBmonit::setMappingPath)
+    .def("SetADCmax", &TBmonit::SetADCmax)
+    .def("SetOutputName", &TBmonit::SetOutputName)
+    .def("MonitPlots", &TBmonit::MonitPlots);
 }
