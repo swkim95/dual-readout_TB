@@ -35,32 +35,32 @@ TBplotbase::TBplotbase(int ww, int wh, const std::string& canvasname, const std:
 
 void TBplotbase::init() {
   for (int i = 0; i < xlow.at(plotkind_).size(); i++) {
+    c_->cd();
+    TPad* tmpPad = new TPad((TString)(canvasname_+std::to_string(plotkind_)+""+std::to_string(i)),
+                            (TString)(canvasname_+std::to_string(plotkind_)+""+std::to_string(i)),
+                            xlow.at(plotkind_).at(i),
+                            ylow.at(plotkind_).at(i),
+                            xup.at(plotkind_).at(i),
+                            yup.at(plotkind_).at(i));
 
-    c_->cd(); TPad* tmpPad = new TPad((TString)(canvasname_+std::to_string(plotkind_)+""+std::to_string(i)),
-                                      (TString)(canvasname_+std::to_string(plotkind_)+""+std::to_string(i)),
-                                      xlow.at(plotkind_).at(i),
-                                      ylow.at(plotkind_).at(i),
-                                      xup.at(plotkind_).at(i),
-                                      yup.at(plotkind_).at(i));
-
-  pads_.push_back(tmpPad);
-  padSet(pads_.at(i), 0.);
+    pads_.push_back(tmpPad);
+    padSet(pads_.at(i), 0.);
   }
 }
 
 TBplot::TBplot(int ww, int wh, TString plotname, TBplotbase::kind plotkind)
-: TBplotbase(ww, wh, plotname, plotkind), plots1D_(0), plots2D_(0), plotkind_(plotkind), plotname_(plotname) {
+: TBplotbase(ww, wh, plotname, plotkind), plotname_(plotname), plots1D_(0), plots2D_(0) {
   init_plots();
 }
 
 TBplot::TBplot(int ww, int wh, TString plotname, TBplotbase::kind plotkind, std::vector<TH1D*> plot1D)
-: TBplotbase(ww, wh, plotname, plotkind), plots1D_(plot1D), plots2D_(0), plotkind_(plotkind), plotname_(plotname) {}
+: TBplotbase(ww, wh, plotname, plotkind), plotname_(plotname), plots1D_(plot1D), plots2D_(0) {}
 
 TBplot::TBplot(int ww, int wh, TString plotname, TBplotbase::kind plotkind, std::vector<TH2D*> plot2D)
-: TBplotbase(ww, wh, plotname, plotkind), plots1D_(0), plots2D_(plot2D), plotkind_(plotkind), plotname_(plotname) {}
+: TBplotbase(ww, wh, plotname, plotkind), plotname_(plotname), plots1D_(0), plots2D_(plot2D) {}
 
 TBplot::TBplot(int ww, int wh, const std::string& plotname, const std::string& plotkind)
-: TBplotbase(ww, wh, plotname, plotkind), plots1D_(0), plots2D_(0) {}
+: TBplotbase(ww, wh, plotname, plotkind), plotname_(plotname), plots1D_(0), plots2D_(0) {}
 
 void TBplot::init_plots() {
   if ( plotkind_ == TBplotbase::kind::sipmHitMap ) {

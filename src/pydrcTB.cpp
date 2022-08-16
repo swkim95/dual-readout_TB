@@ -42,9 +42,9 @@ BOOST_PYTHON_MODULE(pydrcTB) {
     .def("MonitPlots", &TBmonit::MonitPlots);
 
   boost::python::class_<TBplot>("TBplot", boost::python::init<int, int, const std::string&, const std::string&>())
-  .def("openFile", &TBplot::openFile)
-  .def("closeFile", &TBplot::closeFile)
-  .def("loadTH1D", &TBplot::loadTH1D)
-  .def("loadTH2D", &TBplot::loadTH2D)
-  .def("Draw", &TBplot::Draw);
+    .def("openFile", &TBplot::openFile)
+    .def("closeFile", &TBplot::closeFile)
+    .def("loadTH1D", &TBplot::loadTH1D)
+    .def("loadTH2D", &TBplot::loadTH2D)
+    .def("Draw", &TBplot::Draw);
 }
