@@ -1,10 +1,11 @@
 import ROOT
 import pydrcTB
+import os
 import argparse
 
 parser=argparse.ArgumentParser()
 parser.add_argument("--in_root",type=str,default="test_Fast.root",help="input root file name")
-parser.add_argument("--save_name",type=str,default="../Pictures/fast",help="plot will be saved as save_name")
+parser.add_argument("--save_name",type=str,default="fastmode_plot",help="plot will be saved as save_name")
 
 parser.add_argument("--mid",type=str,default="",help="mid list 1,2,3  empty for all mid")
 parser.add_argument("--channel",type=str,default="",help="channel list 1,2,3  empty for all channel")
@@ -20,6 +21,12 @@ else:list_mid=[int(i) for i in args.mid.split(",")]
 if(args.channel==""):list_channel=[]
 else:list_channel=[int(i) for i in args.channel.split(",")]
 
+if(not os.path.isfile(args.in_root)):
+  raise ValueError(args.in_root+" not found")
+if(not os.path.isfile(args.mapping)):
+  raise ValueError(args.mapping+" not found")
+if(not os.path.isfile(args.pedestal)):
+  raise ValueError(args.mapping+" not found")
 
 # open root file and get Tree
 file = ROOT.TFile(args.in_root)
