@@ -33,14 +33,18 @@ public:
   void SetADCmax(double DistMaxADC) { DistMaxADC_ = DistMaxADC; }
   void SetADCbin(double DistBinADC) { DistBinADC_ = DistBinADC; }
 
+  int printADCbin() { return DistBinADC_; }
+  float printADCmax() { return DistMaxADC_; }
+
+
 private:
   TFile* outputFile;
 
   std::vector<std::string> fastList_;
   std::vector<std::string> waveList_;
 
-  double DistMaxADC_;
-  double DistBinADC_;
+  float DistMaxADC_;
+  int DistBinADC_;
 
   std::string outputName_;
   std::string mappingpath_;
