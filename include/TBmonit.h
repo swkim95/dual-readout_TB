@@ -33,10 +33,6 @@ public:
   void SetADCmax(double DistMaxADC) { DistMaxADC_ = DistMaxADC; }
   void SetADCbin(double DistBinADC) { DistBinADC_ = DistBinADC; }
 
-  int printADCbin() { return DistBinADC_; }
-  float printADCmax() { return DistMaxADC_; }
-
-
 private:
   TFile* outputFile;
 

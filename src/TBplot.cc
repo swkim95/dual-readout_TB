@@ -15,8 +15,6 @@ TBplotbase::TBplotbase(int ww, int wh, TString canvasname, TBplotbase::kind plot
   init();
 }
 
-
-
 TBplotbase::TBplotbase(int ww, int wh, const std::string& canvasname, const std::string& plotkind)
 : canvasname_(canvasname), savename_("") {
   if (plotkind=="hitmap")
