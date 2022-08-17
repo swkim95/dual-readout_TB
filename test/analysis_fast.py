@@ -7,15 +7,17 @@ parser=argparse.ArgumentParser()
 parser.add_argument("--in_root",type=str,default="test_Fast.root",help="input root file name")
 parser.add_argument("--save_name",type=str,default="fastmode_plot",help="plot will be saved as save_name")
 
+parser.add_argument("--event",type=str,default="",help="event list 1,2,3  empty for all event")
 parser.add_argument("--mid",type=str,default="",help="mid list 1,2,3  empty for all mid")
 parser.add_argument("--channel",type=str,default="",help="channel list 1,2,3  empty for all channel")
 
-parser.add_argument("--mod",type=str,default="fast",help="fast or wave")
+#parser.add_argument("--mod",type=str,default="fast",help="fast or wave")
 parser.add_argument("--mapping",type=str,default="mapping_data_MCPPMT_positiveSignal.csv",help="mapping file")
 parser.add_argument("--pedestal",type=str,default="ped_236.csv",help="pedestal file")
 
 args=parser.parse_args()
-mod=args.mod
+if(args.event==""):list_event=[]
+else:list_event=[int(i) for i in args.event.split(",")]
 if(args.mid==""):list_mid=[]
 else:list_mid=[int(i) for i in args.mid.split(",")]
 if(args.channel==""):list_channel=[]
@@ -46,7 +48,8 @@ list_pmt_scint_adc=[]
 list_pmt_ceren_adc=[]
 info=[]
 print("Read entry")
-for ievt in range(atree.GetEntries()):
+if(list_event==[]):list_event=range(atree.GetEntries())
+for ievt in list_event:
     # load each entry
     atree.GetEntry(ievt)
     anevt = getattr(atree,"TBevt")
