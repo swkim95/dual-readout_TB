@@ -48,8 +48,8 @@ void TBplotbase::init() {
   }
 }
 
-TBplot::TBplot(int ww, int wh, TString plotname, TBplotbase::kind plotkind)
-: TBplotbase(ww, wh, plotname, plotkind), plotname_(plotname), plots1D_(0), plots2D_(0) {
+TBplot::TBplot(int ww, int wh, double distMax, int distBin, TString plotname, TBplotbase::kind plotkind)
+: TBplotbase(ww, wh, plotname, plotkind), distMax_(distMax), distBin_(distBin), plots1D_(0), plots2D_(0), plotkind_(plotkind), plotname_(plotname) {
   init_plots();
 }
 
@@ -70,7 +70,7 @@ void TBplot::init_plots() {
       tmpHist->SetTitle("");
       tmpHist->GetXaxis()->SetTickLength(0.);
       tmpHist->GetYaxis()->SetTickLength(0.);
-      tmpHist->GetZaxis()->SetRangeUser(0., hitmapMax);
+      tmpHist->GetZaxis()->SetRangeUser(0., distMax_);
       tmpHist->Sumw2();
       plots2D_.push_back(tmpHist);
     }
@@ -80,11 +80,11 @@ void TBplot::init_plots() {
     colPal->SetTitle("");
     colPal->GetXaxis()->SetTickLength(0.);
     colPal->GetYaxis()->SetTickLength(0.);
-    colPal->GetZaxis()->SetRangeUser(0., hitmapMax);
+    colPal->GetZaxis()->SetRangeUser(0., distMax_);
     colPal->Sumw2();
 
     for (int i = 1; i <= 10000; i++)
-      colPal->SetBinContent(1, i, (hitmapMax/9999.)*(i-1));
+      colPal->SetBinContent(1, i, (distMax_/9999.)*(i-1));
 
     plots2D_.push_back(colPal);
 
@@ -95,7 +95,7 @@ void TBplot::init_plots() {
         tmpHist->SetStats(0); tmpHist->SetTitle("");
         tmpHist->GetXaxis()->SetTickLength(0.);
         tmpHist->GetYaxis()->SetTickLength(0.);
-        tmpHist->GetZaxis()->SetRangeUser(0., hitmapMax);
+        tmpHist->GetZaxis()->SetRangeUser(0., distMax_);
         tmpHist->Sumw2();
       } else {
         tmpHist = new TH2D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), (TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), 20, 0, 20, 20, 0, 20);
@@ -103,7 +103,7 @@ void TBplot::init_plots() {
         tmpHist->SetTitle("");
         tmpHist->GetXaxis()->SetTickLength(0.);
         tmpHist->GetYaxis()->SetTickLength(0.);
-        tmpHist->GetZaxis()->SetRangeUser(0., hitmapMax);
+        tmpHist->GetZaxis()->SetRangeUser(0., distMax_);
         tmpHist->Sumw2();
       }
 
@@ -111,7 +111,7 @@ void TBplot::init_plots() {
     }
   } else if ( plotkind_ == TBplotbase::kind::distribution ) {
     for( int i = 0; i < 2*xlow.at(plotkind_).size(); i++ ) {
-      TH1D* tmpHist = new TH1D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), (TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), distBin, -1500, distMax);
+      TH1D* tmpHist = new TH1D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), (TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), distBin_, -1500, distMax_);
       tmpHist->SetStats(1);
       tmpHist->SetLineWidth(1);
       tmpHist->SetTitle("");

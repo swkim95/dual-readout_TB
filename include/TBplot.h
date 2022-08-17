@@ -82,7 +82,7 @@ private:
 
 class TBplot : public TBplotbase {
 public:
-  TBplot(int ww, int wh, TString plotname, TBplotbase::kind plotkind);
+  TBplot(int ww, int wh, double distMax, int distBin, TString plotname, TBplotbase::kind plotkind);
   TBplot(int ww, int wh, TString plotname, TBplotbase::kind plotkind, std::vector<TH1D*> plot1D);
   TBplot(int ww, int wh, TString plotname, TBplotbase::kind plotkind, std::vector<TH2D*> plot2D);
   TBplot(int ww, int wh, const std::string& plotname, const std::string& plotkind);
@@ -108,10 +108,8 @@ public:
   void print();
 
 private:
-  double hitmapMax = 1500.;
-
-  int distBin = 100;
-  double distMax = 5000.;
+  int distBin_;
+  double distMax_;
 
   TString plotname_;
   TFile* dqmFile_;

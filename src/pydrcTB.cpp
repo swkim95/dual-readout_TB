@@ -38,6 +38,7 @@ BOOST_PYTHON_MODULE(pydrcTB) {
     .def("setPedestalPath", &TBmonit::setPedestalPath)
     .def("setMappingPath", &TBmonit::setMappingPath)
     .def("SetADCmax", &TBmonit::SetADCmax)
+    .def("SetADCbin", &TBmonit::SetADCbin)
     .def("SetOutputName", &TBmonit::SetOutputName)
     .def("MonitPlots", &TBmonit::MonitPlots);
 
