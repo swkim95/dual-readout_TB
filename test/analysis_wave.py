@@ -1,7 +1,7 @@
 import ROOT
 import pydrcTB
 import argparse
-from tqdm import tqdm
+import os
 from array import array
 
 parser=argparse.ArgumentParser()
@@ -20,6 +20,13 @@ for label in args.wave_case.replace(" ","").split(","):
   case=[int(i) for i in label.split("_")]
   wave_case.append(case)
 
+if(not os.path.isfile(args.in_root)):
+  raise ValueError(args.in_root+" not found")
+if(not os.path.isfile(args.mapping)):
+  raise ValueError(args.mapping+" not found")
+if(not os.path.isfile(args.pedestal)):
+  raise ValueError(args.mapping+" not found")
+
 # open root file and get Tree
 file = ROOT.TFile(args.in_root)
 atree = file.Get("events")
@@ -35,7 +42,6 @@ list_wave=[]
 list_label=[]
 list_title=[]
 log=""
-#for ievt in tqdm(range(atree.GetEntries())):
 for case in wave_case:
     ievt,imid,ich=case
     atree.GetEntry(ievt)

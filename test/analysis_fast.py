@@ -1,5 +1,6 @@
 import ROOT
 import pydrcTB
+import os
 import argparse
 
 parser=argparse.ArgumentParser()
@@ -20,6 +21,12 @@ else:list_mid=[int(i) for i in args.mid.split(",")]
 if(args.channel==""):list_channel=[]
 else:list_channel=[int(i) for i in args.channel.split(",")]
 
+if(not os.path.isfile(args.in_root)):
+  raise ValueError(args.in_root+" not found")
+if(not os.path.isfile(args.mapping)):
+  raise ValueError(args.mapping+" not found")
+if(not os.path.isfile(args.pedestal)):
+  raise ValueError(args.mapping+" not found")
 
 # open root file and get Tree
 file = ROOT.TFile(args.in_root)
@@ -27,8 +34,8 @@ atree = file.Get("events")
 
 # load mapping and pedestal
 utility = pydrcTB.TButility()
-utility.loading(args.mapping)
 utility.loadped(args.pedestal)
+utility.loading(args.mapping)
 channelsize = 32
 
 # initialize empty list
