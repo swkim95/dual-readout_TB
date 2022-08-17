@@ -49,7 +49,7 @@ void TBplotbase::init() {
 }
 
 TBplot::TBplot(int ww, int wh, double distMax, int distBin, TString plotname, TBplotbase::kind plotkind)
-: TBplotbase(ww, wh, plotname, plotkind), distMax_(distMax), distBin_(distBin), plots1D_(0), plots2D_(0), plotkind_(plotkind), plotname_(plotname) {
+: TBplotbase(ww, wh, plotname, plotkind), distMax_(distMax), distBin_(distBin), plots1D_(0), plots2D_(0), plotname_(plotname) {
   init_plots();
 }
 
@@ -331,7 +331,9 @@ void TBplot::Draw() {
       plots2D_.at(i)->Draw("col");
     }
   } else if ( plotkind_ == TBplotbase::kind::hitmap ) {
-    c_->cd(); pads_.at(0)->cd(); plots2D_.at(0)->Draw("col");
+    c_->cd();
+    pads_.at(0)->cd();
+    plots2D_.at(0)->Draw("col");
 
     for (int i = 1; i < xlow.at(plotkind_).size(); i++) {
       c_->cd();
