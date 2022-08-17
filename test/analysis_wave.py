@@ -7,7 +7,7 @@ from array import array
 parser=argparse.ArgumentParser()
 parser.add_argument("--in_root",type=str,default="test_Wave.root",help="input root file name")
 parser.add_argument("--wave_case",type=str,default="1_2_3,3_2_1,5_6_7",help="list ievt_mid_ch,ievt_mid_ch  to draw")
-parser.add_argument("--save_name",type=str,default="../Pictures/wave",help="plot will be saved as save_name")
+parser.add_argument("--save_name",type=str,default="waveform_plot",help="plot will be saved as save_name")
 
 parser.add_argument("--mod",type=str,default="wave",help="fast or wave")
 parser.add_argument("--mapping",type=str,default="mapping_data_MCPPMT_positiveSignal.csv",help="mapping file")

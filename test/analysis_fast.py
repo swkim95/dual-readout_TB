@@ -5,7 +5,7 @@ import argparse
 
 parser=argparse.ArgumentParser()
 parser.add_argument("--in_root",type=str,default="test_Fast.root",help="input root file name")
-parser.add_argument("--save_name",type=str,default="../Pictures/fast",help="plot will be saved as save_name")
+parser.add_argument("--save_name",type=str,default="fastmode_plot",help="plot will be saved as save_name")
 
 parser.add_argument("--mid",type=str,default="",help="mid list 1,2,3  empty for all mid")
 parser.add_argument("--channel",type=str,default="",help="channel list 1,2,3  empty for all channel")
@@ -34,8 +34,8 @@ atree = file.Get("events")
 
 # load mapping and pedestal
 utility = pydrcTB.TButility()
-utility.loadped(args.pedestal)
 utility.loading(args.mapping)
+utility.loadped(args.pedestal)
 channelsize = 32
 
 # initialize empty list
