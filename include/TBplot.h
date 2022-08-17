@@ -62,10 +62,12 @@ public:
     {0.49, 0.99}
   };
 
+protected:
+  kind plotkind_;
+
 private:
   TString canvasname_;
   TString savename_;
-  kind plotkind_;
 
   void padSet (TPad* tPad, double margin) {
     tPad->Draw();
@@ -112,7 +114,6 @@ private:
   TString plotname_;
   TFile* dqmFile_;
 
-  kind plotkind_;
   std::vector<TH1D*> plots1D_;
   std::vector<TH2D*> plots2D_;
 };
