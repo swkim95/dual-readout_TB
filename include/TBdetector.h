@@ -45,6 +45,7 @@ public:
   ~TBdetector() {}
 
   detid det() const { return det_; }
+  int detType() const { return static_cast<int>(det_); }
   uint64_t id() const { return id_; }
 
   bool isSiPM() const { return det_==detid::SiPM; }

@@ -17,6 +17,7 @@ BOOST_PYTHON_MODULE(pydrcTB) {
     .def("channel", &TBcid::channel);
 
   boost::python::class_<TBdetector>("TBdetector")
+    .def("detType", &TBdetector::detType)
     .def("isSiPM", &TBdetector::isSiPM)
     .def("isModule", &TBdetector::isModule)
     .def("isNull", &TBdetector::isNull)
