@@ -28,6 +28,34 @@ float TBwaveform::pedcorrectedADC(float ped, int buffer) const {
   return std::accumulate(corrected.rbegin()+buffer,corrected.rend(),0.);
 }
 
+float TBwaveform::emulfastADC() const {
+
+  auto waveform_eff = waveform_;
+
+  for (int i = 0; i < 24; ++i) //remove last 24 bins
+    waveform_eff.pop_back();
+
+  auto result = std::min_element(waveform_eff.begin(), waveform_eff.end());
+
+  int idx_min = result-waveform_eff.begin();
+  
+  auto waveform_shfted = waveform_eff;
+
+  std::rotate(waveform_shfted.begin(), waveform_shfted.begin()+idx_min, waveform_shfted.end()); 
+  std::rotate(waveform_shfted.rbegin(), waveform_shfted.rbegin()+400 , waveform_shfted.rend());
+
+  float adc_sig = 0.0;
+  float adc_ped = 0.0;
+
+  for (int i = 0; i < 300; ++i)
+  {
+    adc_ped+=4096.0-waveform_shfted.at(i);
+    adc_sig+=4096.0-waveform_shfted.at(i+300);
+  }
+
+  return adc_sig-adc_ped;
+}
+
 TBfastmode::TBfastmode()
 : channel_(-1), adc_(0), timing_(0) {}
 

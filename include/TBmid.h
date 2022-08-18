@@ -2,6 +2,8 @@
 #define TBmid_h 1
 
 #include <vector>
+#include <algorithm>
+#include <iterator>
 
 class TBwaveform {
 public:
@@ -17,6 +19,7 @@ public:
 
   std::vector<float> pedcorrectedWaveform(float ped) const;
   float pedcorrectedADC(float ped, int buffer=24) const;
+  float emulfastADC() const;
 
   void fill(unsigned int bin, short val) { waveform_.at(bin) = val; }
 private:
