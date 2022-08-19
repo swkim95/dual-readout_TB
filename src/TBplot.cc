@@ -153,20 +153,16 @@ void TBplot::closeFile() {
 }
 
 void TBplot::loadTH(const std::string& name, int num) {
-    std::string classname = dqmFile_->Get((TString)(name+std::to_string(0)))->ClassName();
-    if(classname.compare("TH1D")==0){
-      for(int i = 0; i < num; i++){
-        plots1D_.push_back((TH1D*)dqmFile_->Get((TString)(name+std::to_string(i))));
-      }
-    }
-    else if(classname.compare("TH2D")==0){
-      for(int i = 0; i < num; i++){
-        plots2D_.push_back((TH2D*)dqmFile_->Get((TString)(name+std::to_string(i))));
-      }
-    }
-    else{
-      throw std::runtime_error("Object Class "+classname+" not found");
-    }
+  std::string classname = dqmFile_->Get((TString)(name+std::to_string(0)))->ClassName();
+  if (classname.compare("TH1D")==0) {
+    for(int i = 0; i < num; i++)
+      plots1D_.push_back((TH1D*)dqmFile_->Get((TString)(name+std::to_string(i))));
+  } else if (classname.compare("TH2D")==0) {
+    for (int i = 0; i < num; i++)
+      plots2D_.push_back((TH2D*)dqmFile_->Get((TString)(name+std::to_string(i))));
+  } else {
+    throw std::runtime_error("Object Class "+classname+" not found");
+  }
 }
 
 void TBplot::loadTH1D(const std::string& name, int num) {
