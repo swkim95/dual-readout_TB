@@ -97,6 +97,7 @@ public:
   void openFile(const std::string& name);
   void closeFile();
 
+  void loadTH(const std::string& name, int num);
   void loadTH1D(const std::string& name, int num);
   void loadTH2D(const std::string& name, int num);
 

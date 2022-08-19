@@ -9,12 +9,11 @@ parser.add_argument("--in_root",type=str,default="test_Wave.root",help="input ro
 parser.add_argument("--wave_case",type=str,default="1_2_3,3_2_1,5_6_7",help="list ievt_mid_ch,ievt_mid_ch  to draw")
 parser.add_argument("--save_name",type=str,default="waveform_plot",help="plot will be saved as save_name")
 
-parser.add_argument("--mod",type=str,default="wave",help="fast or wave")
+#parser.add_argument("--mod",type=str,default="wave",help="fast or wave")
 parser.add_argument("--mapping",type=str,default="mapping_data_MCPPMT_positiveSignal.csv",help="mapping file")
 parser.add_argument("--pedestal",type=str,default="ped_236.csv",help="pedestal file")
 
 args=parser.parse_args()
-mod=args.mod
 wave_case=[]
 for label in args.wave_case.replace(" ","").split(","):
   case=[int(i) for i in label.split("_")]
