@@ -31,7 +31,9 @@ BOOST_PYTHON_MODULE(pydrcTB) {
     .def("loading", &TButility::loading)
     .def("loadped", &TButility::loadped)
     .def("find", &TButility::find)
-    .def("retrievePed", &TButility::retrievePed);
+    .def("retrievePed", &TButility::retrievePed)
+    .def("getcid", &TButility::getcid)
+    .def("pid", &TButility::pid);
 
   boost::python::class_<TBmonit>("TBmonit")
     .def("setFastmodeFiles", &TBmonit::setFastmodeFiles)

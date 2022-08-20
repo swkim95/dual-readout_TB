@@ -25,10 +25,18 @@ int main(int argc, char** argv) {
   utility.loading("mapping_data_MCPPMT_positiveSignal.csv");
   utility.loadped("sample_ped.csv");
 
+  TBcid pscid = utility.getcid(25);
+  TBcid mucid = utility.getcid(27);
+
   unsigned channelsize = 32;
 
   for (unsigned ievt = 0; ievt < atree->GetEntries(); ievt++) {
     atree->GetEntry(ievt);
+
+    //example: id (0:nothing, 1:hadron, 2:mu, 3:el)
+    TBfastmode adata_ps = anevt->data(pscid);
+    TBfastmode adata_mu = anevt->data(mucid);
+    std::cout << "pid:" << utility.pid(adata_ps.adc(), adata_mu.adc()) << std::endl;
 
     double adc = 0.;
 

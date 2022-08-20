@@ -19,6 +19,8 @@ public:
   TBdetector::detid detid(int tid) const;
   TBdetector find(const TBcid& cid) const;
   float retrievePed(const TBcid& cid) const;
+  TBcid getcid(int did) const;
+  int pid(float psadc, float muadc) const;
 
 private:
   std::map<TBcid, TBdetector> mapping_;

@@ -122,3 +122,35 @@ float TButility::retrievePed(const TBcid& cid) const {
 
   return pedmap_.at(cid);
 }
+
+TBcid TButility::getcid(int did) const {
+  bool found = false;
+  for (auto it = mapping_.begin(); it != mapping_.end(); ++it) {
+    if(it->second.detType()==did) {
+      found = true;
+      return it->first;
+    }    
+  }
+  if(!found) 
+    throw std::runtime_error("TButility - cannot find detector!");
+
+  TBcid dummy(-1,-1);
+  return dummy;
+}
+
+int TButility::pid(float psadc, float muadc) const {
+  int pid = 0; //nothing
+  //hardcoded cuts
+  float psc1 = 200, psc2 = 800;
+  float muc1 = 200;
+  if(psadc>psc1 && psadc<psc2){
+    if(muadc<muc1)
+      pid = 1; //hadron
+    else 
+      pid = 2; //mu
+  }
+  if(psadc>psc2)
+    pid = 3; //el
+
+  return pid;
+}
