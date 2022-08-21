@@ -19,7 +19,7 @@ public:
 
   std::vector<float> pedcorrectedWaveform(float ped) const;
   float pedcorrectedADC(float ped, int buffer=24) const;
-  float emulfastADC(int buffer=24) const;
+  float emulfastADC(int rise, int width, int buffer=24) const;
 
   void fill(unsigned int bin, short val) { waveform_.at(bin) = val; }
 private:

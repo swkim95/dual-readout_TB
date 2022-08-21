@@ -28,11 +28,13 @@ float TBwaveform::pedcorrectedADC(float ped, int buffer) const {
   return std::accumulate(corrected.rbegin()+buffer,corrected.rend(),0.);
 }
 
-float TBwaveform::emulfastADC(int buffer) const {
+float TBwaveform::emulfastADC(int rise, int width, int buffer) const {
   auto waveform_eff = waveform_;
 
   for (int i = 0; i < buffer; ++i) //remove last 24 bins
     waveform_eff.pop_back();
+
+  waveform_eff.erase(waveform_eff.begin()); // remove 0th bin
 
   auto result = std::min_element(waveform_eff.begin(), waveform_eff.end());
 
@@ -41,14 +43,14 @@ float TBwaveform::emulfastADC(int buffer) const {
   auto waveform_shfted = waveform_eff;
 
   std::rotate(waveform_shfted.begin(), waveform_shfted.begin()+idx_min, waveform_shfted.end());
-  std::rotate(waveform_shfted.rbegin(), waveform_shfted.rbegin()+400 , waveform_shfted.rend());
+  std::rotate(waveform_shfted.rbegin(), waveform_shfted.rbegin()+(rise+width) , waveform_shfted.rend());
 
   float adc_sig = 0.0;
   float adc_ped = 0.0;
 
-  for (int i = 0; i < 300; ++i) {
+  for (int i = 0; i < width; ++i) {
     adc_ped += 4096.0 - waveform_shfted.at(i);
-    adc_sig += 4096.0 - waveform_shfted.at(i+300);
+    adc_sig += 4096.0 - waveform_shfted.at(i+width);
   }
 
   return adc_sig - adc_ped;
