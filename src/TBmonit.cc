@@ -163,6 +163,9 @@ void TBmonit::MonitPlots(int max_evt) {
         if (tmpId.det() == TBdetector::detid::preshower || tmpId.det() == TBdetector::detid::tail || tmpId.det() == TBdetector::detid::muon)
           AuxWave->fillAux(tmpId, peak);
 
+        if (tmpId.det() == TBdetector::detid::preshower || tmpId.det() == TBdetector::detid::tail || tmpId.det() == TBdetector::detid::muon)
+          AuxWave->fillAux(tmpId, adc);
+
         if (tmpId.module() == 2 && tmpId.tower() == 5) {
           if (tmpId.isCeren())
             sipmCadc += peak;
@@ -265,6 +268,17 @@ void TBmonit::MonitPlots(int max_evt) {
 
   for (int i = 0; i < AuxWave->getPlotSize1D(); i++)
     plotRootFile->WriteTObject(AuxWave->aPlot1D(i));
+
+  for (int i = 0; i < DWCfast->getPlotSize2D(); i++)
+    plotRootFile->WriteTObject(DWCfast->aPlot2D(i));
+
+  for (int i = 0; i < AuxFast->getPlotSize1D(); i++)
+    plotRootFile->WriteTObject(AuxFast->aPlot1D(i));
+
+  for (int i = 0; i < AuxWave->getPlotSize1D(); i++)
+    plotRootFile->WriteTObject(AuxWave->aPlot1D(i));
+
+
 
   plotRootFile->Close();
 }

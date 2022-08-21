@@ -436,27 +436,35 @@ void TBplot::Draw() {
       TPaveStats* S_stat = (TPaveStats*)plots1D_.at(i+xlow.at(plotkind_).size())->FindObject("stats");
       S_stat->SetName("Scintillation");
       S_stat->SetTextColor(kRed);
-      S_stat->SetY1NDC(0.7);
-      S_stat->SetY2NDC(0.9);
+      S_stat->SetX1NDC(0.65);
+      S_stat->SetX2NDC(0.95);
+      S_stat->SetY1NDC(0.8);
+      S_stat->SetY2NDC(1.0);
+      S_stat->SaveStyle();
 
       // Cerenkov
-      plots1D_.at(i)->Draw("Hist&sames");
+     plots1D_.at(i)->Draw("Hist&sames");
       c_->Modified();
       c_->Update();
 
       TPaveStats* C_stat = (TPaveStats*)plots1D_.at(i)->FindObject("stats");
       C_stat->SetName("Cerenkov");
       C_stat->SetTextColor(kBlue);
-      C_stat->SetY1NDC(0.5);
-      C_stat->SetY2NDC(0.7);
+      C_stat->SetX1NDC(0.65);
+      C_stat->SetX2NDC(0.95);
+      C_stat->SetY1NDC(0.6);
+      C_stat->SetY2NDC(0.8);
+      C_stat->SaveStyle();
 
       c_->cd();
       pads_.at(i)->cd();
       pads_.at(i)->Modified();
       pads_.at(i)->Update();
 
-      S_stat->~TPaveStats();
-      C_stat->~TPaveStats();
+      c_->cd();
+      pads_.at(i)->cd();
+      pads_.at(i)->Modified();
+      pads_.at(i)->Update();
     }
   } else if ( plotkind_ == TBplotbase::kind::auxiliary ) {
     for (int i = 0; i < xlow.at(plotkind_).size(); i++) {

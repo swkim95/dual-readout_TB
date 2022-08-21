@@ -49,5 +49,7 @@ BOOST_PYTHON_MODULE(pydrcTB) {
     .def("loadTH", &TBplot::loadTH)
     .def("loadTH1D", &TBplot::loadTH1D)
     .def("loadTH2D", &TBplot::loadTH2D)
-    .def("Draw", &TBplot::Draw);
+    .def("Draw", &TBplot::Draw)
+    .def("setSaveName", &TBplot::setSaveName)
+    .def("SavePng", &TBplot::SavePng);
 }
