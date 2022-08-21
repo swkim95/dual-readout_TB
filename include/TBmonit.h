@@ -11,13 +11,13 @@
 
 class TBmonit {
 public:
-  TBmonit();
+  TBmonit(const std::string& outputName);
   ~TBmonit() {}
 
   void setFastmodeFiles(const boost::python::list&);
   void setWaveformFiles(const boost::python::list&);
 
-  void MonitPlots();
+  void MonitPlots(int max_evt);
   void padSet (TPad* tPad, double margin);
 
   std::string mappingpath() const { return mappingpath_; }

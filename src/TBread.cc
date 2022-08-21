@@ -216,7 +216,7 @@ void TBread::ntuplizeWaveform(const boost::python::list& alist, const std::strin
   // get # of events in file
   FILE* fp = fopen(filenames.front().c_str(), "rb");
   fseek(fp, 0L, SEEK_END);
-  int file_size = ftell(fp);
+  unsigned long long file_size = ftell(fp);
   fclose(fp);
   int nevt = file_size / 65536;
 

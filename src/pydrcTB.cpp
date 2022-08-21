@@ -33,7 +33,7 @@ BOOST_PYTHON_MODULE(pydrcTB) {
     .def("find", &TButility::find)
     .def("retrievePed", &TButility::retrievePed);
 
-  boost::python::class_<TBmonit>("TBmonit")
+  boost::python::class_<TBmonit>("TBmonit", boost::python::init<const std::string&>())
     .def("setFastmodeFiles", &TBmonit::setFastmodeFiles)
     .def("setWaveformFiles", &TBmonit::setWaveformFiles)
     .def("setPedestalPath", &TBmonit::setPedestalPath)

@@ -15,6 +15,8 @@ public:
   void set(std::vector<TBmid<T>> in) { mids_ = in; }
   void setTCB(int tcb) { evt_ = tcb; }
 
+  int tcb() { return evt_; }
+
   TBmid<T> mid(unsigned idx) const { return mids_.at(idx); }
   int size() const { return static_cast<int>(mids_.size()); }
 

@@ -4,6 +4,7 @@
 
 #include "TCanvas.h"
 #include "TPad.h"
+#include "TPaveStats.h"
 
 #include "TBplot.h"
 #include "TPaletteAxis.h"
@@ -25,6 +26,10 @@ TBplotbase::TBplotbase(int ww, int wh, const std::string& canvasname, const std:
     plotkind_ = kind::waveform;
   else if (plotkind=="sipmHitMap")
     plotkind_ = kind::sipmHitMap;
+  else if (plotkind=="dwc")
+    plotkind_ = kind::dwc;
+  else if (plotkind=="auxiliary")
+    plotkind_ = kind::auxiliary;
   else
     throw std::runtime_error("TBplotbase - please check TBplotbase::kind!");
 
@@ -44,7 +49,7 @@ void TBplotbase::init() {
                             yup.at(plotkind_).at(i));
 
     pads_.push_back(tmpPad);
-    padSet(pads_.at(i), 0.);
+    padSet(pads_.at(i), 0.1);
   }
 }
 
@@ -103,7 +108,7 @@ void TBplot::init_plots() {
         tmpHist->SetTitle("");
         tmpHist->GetXaxis()->SetTickLength(0.);
         tmpHist->GetYaxis()->SetTickLength(0.);
-        tmpHist->GetZaxis()->SetRangeUser(0., distMax_);
+        tmpHist->GetZaxis()->SetRangeUser(0., distMax_/20.);
         tmpHist->Sumw2();
       }
 
@@ -111,7 +116,14 @@ void TBplot::init_plots() {
     }
   } else if ( plotkind_ == TBplotbase::kind::distribution ) {
     for( int i = 0; i < 2*xlow.at(plotkind_).size(); i++ ) {
-      TH1D* tmpHist = new TH1D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), (TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), distBin_, -1500, distMax_);
+      TH1D* tmpHist;
+
+      if( i != 8 && i != 21 ) {
+        tmpHist = new TH1D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), (TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), distBin_, -500, distMax_);
+      } else {
+        tmpHist = new TH1D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), (TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), distBin_, -500, distMax_*4);
+      }
+
       tmpHist->SetStats(1);
       tmpHist->SetLineWidth(1);
       tmpHist->SetTitle("");
@@ -128,7 +140,6 @@ void TBplot::init_plots() {
     for( int i = 0; i < 2*xlow.at(plotkind_).size(); i++ ) {
       TH1D* tmpHist = new TH1D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), (TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(i)), 1000, 0, 1000);
       tmpHist->SetTitle("");
-      tmpHist->SetStats(0);
       tmpHist->SetLineWidth(1);
       tmpHist->GetYaxis()->SetRangeUser(0., 4100.);
       tmpHist->Sumw2();
@@ -139,6 +150,31 @@ void TBplot::init_plots() {
 
       plots1D_.push_back(tmpHist);
     }
+  } else if ( plotkind_ == TBplotbase::kind::dwc ) {
+    TH2D* tmpHist1 = new TH2D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(0)), (TString)(plotname_+"_DWC1_Upstream view;X [mm];Y [mm]"), 100, -50., 50., 100, -50, 50);
+    tmpHist1->SetStats(1);
+    plots2D_.push_back(tmpHist1);
+    TH2D* tmpHist2 = new TH2D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(1)), (TString)(plotname_+"_DWC2_Upstream view;X [mm];Y [mm]"), 100, -50., 50., 100, -50, 50);
+    tmpHist2->SetStats(1);
+    plots2D_.push_back(tmpHist2);
+    TH2D* tmpHist3 = new TH2D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(2)), (TString)(plotname_+"_DWC1_vs_DWC2_X;DWC1 X [mm]; DWC2 X [mm]"), 100, -50., 50., 100, -50, 50);
+    tmpHist3->SetStats(1);
+    plots2D_.push_back(tmpHist3);
+    TH2D* tmpHist4 = new TH2D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(3)), (TString)(plotname_+"_DWC1_vs_DWC2_Y;DWC1 Y [mm]; DWC2 Y [mm]"), 100, -50., 50., 100, -50, 50);
+    tmpHist4->SetStats(1);
+    plots2D_.push_back(tmpHist4);
+
+  } else if ( plotkind_ == TBplotbase::kind::auxiliary ) {
+    TH1D* tmpHist1 = new TH1D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(0)), "Pre Shower Detector; Integrated ADC; # entries", distBin_, -500, distMax_);
+    tmpHist1->SetStats(1);
+    TH1D* tmpHist2 = new TH1D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(1)), "Tail Catcher; Integrated ADC; # entries", distBin_, -500, distMax_);
+    tmpHist2->SetStats(1);
+    TH1D* tmpHist3 = new TH1D((TString)(plotname_+std::to_string(plotkind_)+""+std::to_string(2)), "Muon Counter; Integrated ADC; # entries", distBin_, -500, distMax_);
+    tmpHist3->SetStats(1);
+    plots1D_.push_back(tmpHist1);
+    plots1D_.push_back(tmpHist2);
+    plots1D_.push_back(tmpHist3);
+
   } else {
     throw std::runtime_error("Available plot : Hitmap, ADC distribution, Waveform");
   }
@@ -316,6 +352,40 @@ void TBplot::fillADC( TBdetector detid, float adc ) {
   }
 }
 
+void TBplot::fillDWC(std::vector<int> dwcTime) {
+  // New calibration based on R - L, U - D
+  // dwcTime vector is mapped as DWC1(R, L, U, D) -> (0, 1, 2, 3) and DWC2(R, L, U, D) -> (4, 5, 6, 7).
+  // Time difference of R - L = dwcTime.at(0) - dwcTime.at(1), but should be flipped by multiplying -1
+  // Time difference of U - D = dwcTime.at(2) - dwcTime.at(3)
+  float dwc1horizontalSlope = -0.1740806676;
+  float dwc1horizontalOffset = -0.1680572999;
+  float dwc1VerticalSlope = -0.17424779576;
+  float dwc1VerticalOffset = -0.053701300;
+
+  float dwc2horizontalSlope = -0.17257273;
+  float dwc2horizontalOffset = -0.579927452;
+  float dwc2VerticalSlope = -0.1741203164;
+  float dwc2VerticalOffset = -0.278179655;
+
+  float dwc1X = -((float)(dwcTime.at(0) - dwcTime.at(1))*25./1000. * dwc1horizontalSlope + dwc1horizontalOffset);
+  float dwc1Y = (float)(dwcTime.at(2) - dwcTime.at(3))*25./1000. * dwc1VerticalSlope + dwc1VerticalOffset;
+  float dwc2X = -((float)(dwcTime.at(4) - dwcTime.at(5))*25./1000. * dwc2horizontalSlope + dwc2horizontalOffset);
+  float dwc2Y = (float)(dwcTime.at(6) - dwcTime.at(7))*25./1000. * dwc2VerticalSlope + dwc2VerticalOffset;
+
+  plots2D_.at(0)->Fill(dwc1X, dwc1Y);
+  plots2D_.at(1)->Fill(dwc2X, dwc2Y);
+  plots2D_.at(2)->Fill(dwc1X, dwc2X);
+  plots2D_.at(3)->Fill(dwc1Y, dwc2Y);
+}
+
+void TBplot::fillAux(TBdetector detid, float adc) {
+
+  if(detid.det() == TBdetector::detid::preshower) plots1D_.at(0)->Fill(adc);
+  if(detid.det() == TBdetector::detid::tail) plots1D_.at(1)->Fill(adc);
+  if(detid.det() == TBdetector::detid::muon) plots1D_.at(2)->Fill(adc);
+
+}
+
 void TBplot::print() {
   for (int i = 0; i < plots2D_.size(); i++) {
     std::cout << plots2D_.at(i)->GetNbinsX() << " " << plots2D_.at(i)->GetNbinsY() << std::endl;
@@ -331,13 +401,13 @@ void TBplot::Reset() {
     for(int i = 0; i < plots2D_.size(); i++)
       plots2D_.at(i)->Reset();
   } else if ( plotkind_ == TBplotbase::kind::distribution || plotkind_ == TBplotbase::kind::waveform ) {
-    for(int i = 0; i < plots2D_.size(); i++)
+    for(int i = 0; i < plots1D_.size(); i++)
       plots1D_.at(i)->Reset();
   }
 }
 
 void TBplot::Draw() {
-  if ( plotkind_ == TBplotbase::kind::sipmHitMap ) {
+  if ( plotkind_ == TBplotbase::kind::sipmHitMap || plotkind_ == TBplotbase::kind::dwc ) {
     for (int i = 0; i < xlow.at(plotkind_).size(); i++) {
       c_->cd();
       pads_.at(i)->cd();
@@ -355,10 +425,45 @@ void TBplot::Draw() {
     }
   } else if ( plotkind_ == TBplotbase::kind::distribution || plotkind_ == TBplotbase::kind::waveform ) {
     for (int i = 0; i < xlow.at(plotkind_).size(); i++) {
+
+      // Scintillation
       c_->cd();
       pads_.at(i)->cd();
       plots1D_.at(i+xlow.at(plotkind_).size())->Draw("Hist");
+      c_->Modified();
+      c_->Update();
+
+      TPaveStats* S_stat = (TPaveStats*)plots1D_.at(i+xlow.at(plotkind_).size())->FindObject("stats");
+      S_stat->SetName("Scintillation");
+      S_stat->SetTextColor(kRed);
+      S_stat->SetY1NDC(0.7);
+      S_stat->SetY2NDC(0.9);
+
+      // Cerenkov
       plots1D_.at(i)->Draw("Hist&sames");
+      c_->Modified();
+      c_->Update();
+
+      TPaveStats* C_stat = (TPaveStats*)plots1D_.at(i)->FindObject("stats");
+      C_stat->SetName("Cerenkov");
+      C_stat->SetTextColor(kBlue);
+      C_stat->SetY1NDC(0.5);
+      C_stat->SetY2NDC(0.7);
+
+      c_->cd();
+      pads_.at(i)->cd();
+      pads_.at(i)->Modified();
+      pads_.at(i)->Update();
+
+      S_stat->~TPaveStats();
+      C_stat->~TPaveStats();
+    }
+  } else if ( plotkind_ == TBplotbase::kind::auxiliary ) {
+    for (int i = 0; i < xlow.at(plotkind_).size(); i++) {
+      c_->cd();
+      pads_.at(i)->cd();
+      plots1D_.at(i)->Draw("Hist");
+  	  c_->Update();
     }
   }
 }
