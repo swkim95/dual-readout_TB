@@ -149,9 +149,13 @@ void TBmonit::MonitPlots(int max_evt) {
         auto awave = achannel.waveform();
 
         float ped = 0;
-        for (int tdx = 0; tdx < 100; tdx++) ped+=(float)awave.at(tdx+1)/100.;
+
+        for (int tdx = 0; tdx < 100; tdx++)
+          ped+=(float)awave.at(tdx+1)/100.;
 
         auto pedwave = achannel.pedcorrectedWaveform(ped);
+        float adc = achannel.pedcorrectedADC(ped);
+
         float peak = *std::max_element(pedwave.begin()+1, pedwave.end()-23);
 
         auto tmpId = utility.find(cid);
