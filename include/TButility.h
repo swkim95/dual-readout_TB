@@ -19,12 +19,21 @@ public:
   TBdetector::detid detid(int tid) const;
   TBdetector find(const TBcid& cid) const;
   float retrievePed(const TBcid& cid) const;
-  TBcid getcid(int did) const;
   int pid(float psadc, float muadc) const;
+
+  void setPSpedcut(float in) { PSpedcut_ = in; }
+  void setPS1mipcut(float in) { PS1mipcut_ = in; }
+  void setPS3mipcut(float in) { PS3mipcut_ = in; }
+  void setMuoncut(float in) { muoncut_ = in; }
 
 private:
   std::map<TBcid, TBdetector> mapping_;
   std::map<TBcid, float> pedmap_;
+
+  float PSpedcut_;
+  float PS1mipcut_;
+  float PS3mipcut_;
+  float muoncut_;
 };
 
 #endif

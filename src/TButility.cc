@@ -123,34 +123,21 @@ float TButility::retrievePed(const TBcid& cid) const {
   return pedmap_.at(cid);
 }
 
-TBcid TButility::getcid(int did) const {
-  bool found = false;
-  for (auto it = mapping_.begin(); it != mapping_.end(); ++it) {
-    if(it->second.detType()==did) {
-      found = true;
-      return it->first;
-    }    
-  }
-  if(!found) 
-    throw std::runtime_error("TButility - cannot find detector!");
+int TButility::pid(float psadc, float muadc=0.) const {
+  int pid = 0; // ped
 
-  TBcid dummy(-1,-1);
-  return dummy;
-}
+  if ( psadc < PSpedcut_ )
+    return pid;
 
-int TButility::pid(float psadc, float muadc) const {
-  int pid = 0; //nothing
-  //hardcoded cuts
-  float psc1 = 200, psc2 = 800;
-  float muc1 = 200;
-  if(psadc>psc1 && psadc<psc2){
-    if(muadc<muc1)
-      pid = 1; //hadron
-    else 
-      pid = 2; //mu
+  if ( psadc > PSpedcut_ && psadc < PS1mipcut_ ) {
+    if( muadc < muoncut_ )
+      pid = 211; // hadron
+    else
+      pid = 13; // muon
   }
-  if(psadc>psc2)
-    pid = 3; //el
+
+  if ( psadc > PS3mipcut_ )
+    pid = 11; // electron
 
   return pid;
 }

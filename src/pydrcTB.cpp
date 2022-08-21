@@ -32,7 +32,10 @@ BOOST_PYTHON_MODULE(pydrcTB) {
     .def("loadped", &TButility::loadped)
     .def("find", &TButility::find)
     .def("retrievePed", &TButility::retrievePed)
-    .def("getcid", &TButility::getcid)
+    .def("setPSpedcut", &TButility::setPSpedcut)
+    .def("setPS1mipcut", &TButility::setPS1mipcut)
+    .def("setPS3mipcut", &TButility::setPS3mipcut)
+    .def("setMuoncut", &TButility::setMuoncut)
     .def("pid", &TButility::pid);
 
   boost::python::class_<TBmonit>("TBmonit", boost::python::init<const std::string&>())
