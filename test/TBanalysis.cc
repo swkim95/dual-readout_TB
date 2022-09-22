@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 
   TButility utility = TButility();
   utility.loading("mapping_data_MCPPMT_positiveSignal_v3.csv");
-  utility.loadped("ped_400.csv");
+  utility.loadped("sample_ped.csv");
 
   TBcid pscid = utility.getcid(TBdetector::detid::preshower);
   TBcid mucid = utility.getcid(TBdetector::detid::muon);
