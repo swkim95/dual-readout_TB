@@ -11,9 +11,9 @@ FWcore for TB data analysis
 ```sh
 source buildNinstall.sh
 cd test
-./compile.sh <analysis code in cpp>
+source compile.sh <analysis code in cpp>
 
-e.g.) ./compile.sh TBanalysis
+e.g.) source compile.sh TBanalysis
 ```
 
 ## Run
