@@ -24,6 +24,7 @@ constexpr double const_pi() {
 }
 
 float peakADC(std::vector<short> waveform) {
+
   float ped = 0;
   for ( int i = 1; i < 101; i++ )
     ped += (float)waveform.at(i)/100.;
@@ -33,6 +34,7 @@ float peakADC(std::vector<short> waveform) {
 }
 
 float getPed(std::vector<short> waveform) {
+
   float ped = 0;
   for ( int i = 1; i < 101; i++ )
     ped += (float)waveform.at(i)/100.;
@@ -57,30 +59,23 @@ TH1D* plotTH1(TBwaveform mid) {
 }
 
 float getTime(float bin) {
+
   return 400. * (bin / 1000.);
 }
 
 float getLinearInterpolate(float thres, float i, float j, float fi, float fj) {
-  // std::cout << i + (j - i) * (thres - fi) / (fj - fi) << std::endl;
+
   return i + (j - i) * (thres - fi) / (fj - fi);
 }
 
 float getLeadingEdge(std::vector<float> waveform) {
 
   float LedingThres = (float)*std::max_element(waveform.begin()+1, waveform.end()-23) * 0.1;
-  // std::cout << LedingThres << std::endl;
   
   for ( int i = 1; i <= 1000; i++ )
-    if ( waveform.at(i) > LedingThres ) {
-      // std::cout << i-1 << " "
-      //           << waveform.at(i-1) << " "
-      //           << i << " "
-      //           << waveform.at(i) << " "
-                // << std::endl;
+    if ( waveform.at(i) > LedingThres )
       return getTime(getLinearInterpolate(LedingThres, i-1, i, waveform.at(i-1), waveform.at(i)));
-    }
 
-  // throw std::runtime_error("getLeadingEdge : no leading edge!");
   return 0;
 }
 
@@ -89,8 +84,6 @@ std::vector<float> getPosition(std::vector<TBwaveform> dwcSet, float xCoeff, flo
   std::vector<float> time;
   for ( int i = 0; i < dwcSet.size(); i++ )
     time.push_back(getLeadingEdge(dwcSet.at(i).pedcorrectedWaveform(getPed(dwcSet.at(i).waveform()))));
-
-
 
   return time;
 
@@ -124,7 +117,9 @@ std::vector<float> getDWCposition(std::vector<int> dwcTime) {
 }
 
 std::vector<float> getPositionFromDWC(std::vector<float> dwcPos) {
+
   std::vector<float> centerLen;
+
   centerLen.push_back(std::sqrt( dwcPos.at(0)*dwcPos.at(0) + dwcPos.at(1)*dwcPos.at(1) ));
   centerLen.push_back(std::sqrt( dwcPos.at(2)*dwcPos.at(2) + dwcPos.at(3)*dwcPos.at(3) ));
 
@@ -164,16 +159,6 @@ int getPID(double PS, double MU) {
 }
 
 
-
-
-// 20GeV : 682
-// 30GeV : 680
-// 40GeV : 679
-// 60GeV : 678
-// 80GeV : 674
-// 100GeV : 675
-// 125GeV : 676
-
 int main(int argc, char** argv) {
 
   gStyle->SetOptFit(1);
@@ -182,32 +167,8 @@ int main(int argc, char** argv) {
   TString runNum = argv[1];
   TString filename = baseDir + "ntuple_Run_" + runNum + "_Fast.root";
 
-  // TString filename = argv[1];
   int maxEvents = std::stoi(argv[2]); 
   TString outputname = argv[3];
-  int takingCut = std::stoi(argv[4]);
-
-  // float muADC_FullRange_onTree;
-  // float muADC_FastEmul_onTree;
-  // float muADC_Peak_onTree;
-
-  // float psADC_FullRange_onTree;
-  // float psADC_FastEmul_onTree;
-  // float psADC_Peak_onTree;
-
-  // TFile* outputFile = new TFile(runNum + "_" + outputname + ".root", "RECREATE");
-
-  // TTree* dataTree = new TTree("data", "data");
-  // dataTree->Branch("muADC_FullRange_onTree", &muADC_FullRange_onTree);
-  // dataTree->Branch("muADC_FastEmul_onTree", &muADC_FastEmul_onTree);
-  // dataTree->Branch("muADC_Peak_onTree", &muADC_Peak_onTree);
-  // dataTree->Branch("psADC_FullRange_onTree", &psADC_FullRange_onTree);
-  // dataTree->Branch("psADC_FastEmul_onTree", &psADC_FastEmul_onTree);
-  // dataTree->Branch("psADC_Peak_onTree", &psADC_Peak_onTree);
-
-  // TH1D* muPeak = new TH1D("", ";;", 1024, -1024., 40960./4.);
-  // TH1D* psPeak = new TH1D("", ";;", 1024, -1024., 40960.*4.);
-  // TH1D* psCutMuPeak = new TH1D("", ";;", 1024, -1024., 40960.*2.);
 
   TH1D* M1T1C_origin = new TH1D("", ";;", 1024, -1024., 30720.); M1T1C_origin->SetLineWidth(2); M1T1C_origin->SetLineColor(kBlue);
   TH1D* M1T2C_origin = new TH1D("", ";;", 1024, -1024., 30720.); M1T2C_origin->SetLineWidth(2); M1T2C_origin->SetLineColor(kBlue);
@@ -237,9 +198,6 @@ int main(int argc, char** argv) {
   TH1D* M2T8S_origin = new TH1D("", ";;", 1024, -1024., 30720.); M2T8S_origin->SetLineWidth(2); M2T8S_origin->SetLineColor(kRed);
   TH1D* M2T9S_origin = new TH1D("", ";;", 1024, -1024., 30720.); M2T9S_origin->SetLineWidth(2); M2T9S_origin->SetLineColor(kRed);
 
-  TH2D* psdVSmoduleC= new TH2D("", ";;", 1024, -1024., 40960.*4., 3072, -3072., 30720.*3.);
-  TH2D* psdVSmoduleS= new TH2D("", ";;", 1024, -1024., 40960.*4., 3072, -3072., 30720.*3.);
-
   TH1D* muFast = new TH1D("", ";;", 1024, -1024., 40960.); muFast->SetLineWidth(2); muFast->SetLineColor(kBlack);
   TH1D* psFast = new TH1D("", ";;", 1024, -1024., 40960.*4.); psFast->SetLineWidth(2); psFast->SetLineColor(kBlack);
   TH1D* tcFast = new TH1D("", ";;", 1024, -1024., 40960.); tcFast->SetLineWidth(2); tcFast->SetLineColor(kBlack);
@@ -264,27 +222,6 @@ int main(int argc, char** argv) {
 
   TH1D* dwc_X_diff_abs = new TH1D("", ";;", 180, 0., 60.); dwc_X_diff_abs->SetLineWidth(2); dwc_X_diff_abs->SetLineColor(kBlack);
   TH1D* dwc_Y_diff_abs = new TH1D("", ";;", 180, 0., 60.); dwc_Y_diff_abs->SetLineWidth(2); dwc_Y_diff_abs->SetLineColor(kBlack);
-
-
-  // float muMean = 495.9;
-  // float muSigma = 444.6;
-  // float psMean = 8208;
-  // float psSigma = 1183;
-
-  // // TH1D* DWC1D1 = new TH1D("", ";;", 1000, 0., 400.);
-  // // TH1D* DWC1D2 = new TH1D("", ";;", 1000, 0., 400.);
-  // // TH1D* DWC1D3 = new TH1D("", ";;", 1000, 0., 400.);
-  // // TH1D* DWC1D4 = new TH1D("", ";;", 1000, 0., 400.);
-  // // TH1D* DWC2D1 = new TH1D("", ";;", 1000, 0., 400.);
-  // // TH1D* DWC2D2 = new TH1D("", ";;", 1000, 0., 400.);
-  // // TH1D* DWC2D3 = new TH1D("", ";;", 1000, 0., 400.);
-  // // TH1D* DWC2D4 = new TH1D("", ";;", 1000, 0., 400.);
-
-  // // TH1D* DWC1RL = new TH1D("", ";;", 1000, -400, 400.);
-  // // TH1D* DWC1DU = new TH1D("", ";;", 1000, -400, 400.);
-
-  // // TH1D* DWC2RL = new TH1D("", ";;", 1000, -400, 400.);
-  // // TH1D* DWC3DU = new TH1D("", ";;", 1000, -400, 400.);
 
   TFile* afile = new TFile(filename);
   TTree* atree = (TTree*)afile->Get("events");
@@ -324,7 +261,6 @@ int main(int argc, char** argv) {
   M1TS.push_back(utility.getcid(TBdetector::detid::PMT, 1, 3, false));
   M1TS.push_back(utility.getcid(TBdetector::detid::PMT, 1, 4, false));
 
-
   std::vector<TBcid> M2TC;
   M2TC.push_back(utility.getcid(TBdetector::detid::PMT, 2, 1, true));
   M2TC.push_back(utility.getcid(TBdetector::detid::PMT, 2, 2, true));
@@ -345,8 +281,6 @@ int main(int argc, char** argv) {
   M2TS.push_back(utility.getcid(TBdetector::detid::PMT, 2, 8, false));
   M2TS.push_back(utility.getcid(TBdetector::detid::PMT, 2, 9, false));
 
-
-
   pscid.print();
   mucid.print();
   tccid.print();
@@ -365,8 +299,6 @@ int main(int argc, char** argv) {
   TCanvas* c = new TCanvas("","");
 
   for (unsigned ievt = 0; ievt < maxEvents; ievt++) {
-  // for (unsigned ievt = 0; ievt < 1; ievt++) {
-
 
     if ( ievt > 0 && ievt % 8 == 0 ) {
       std::chrono::duration time_taken = std::chrono::system_clock::now() - time_begin; //delete
@@ -406,8 +338,6 @@ int main(int argc, char** argv) {
       M1TS_data.push_back(anevt->data(M1TS.at(i)));
     }
 
-    // // DWC1_2 -> Check !
-
     std::vector<int> dwc_time;
 
     for ( int i = 0; i < 4; i++ )
@@ -425,185 +355,124 @@ int main(int argc, char** argv) {
     float psADC = adata_ps.adc();
     float tcADC = adata_tc.adc();
 
-    // psdVSmoduleC->Fill(psADC, M1TC_data.at(1).adc());
-    // psdVSmoduleS->Fill(psADC, M1TS_data.at(1).adc());
+    if ( !inDWCaxisAlign(dwc_pos, 2) ) continue;
+    if ( !inVetoWithAlign(centerPos) ) continue;
+    if ( getPID(psADC, muADC) != 11 ) continue;
 
-  //   if ( takingCut == 1) {
-  //     if ( !inVetoWithAlign(centerPos) ) continue;
-  //     if ( !inDWCaxisAlign(dwc_pos, 2) ) continue;
-  //     if ( getPID(psADC, muADC) != 11 ) continue;
-  // }
+    dwc_X_diff->Fill(dwc_pos.at(0) - dwc_pos.at(2));
+    dwc_Y_diff->Fill(dwc_pos.at(1) - dwc_pos.at(3));
 
-    psdVSmoduleC->Fill(psADC, M1TC_data.at(1).adc());
-    psdVSmoduleS->Fill(psADC, M1TS_data.at(1).adc());
+    dwc_X_diff_abs->Fill(std::abs(dwc_pos.at(0) - dwc_pos.at(2)));
+    dwc_Y_diff_abs->Fill(std::abs(dwc_pos.at(1) - dwc_pos.at(3)));
 
+    dwc_center_diff->Fill(lecDiff);
+    dwc_center_diff_angle->Fill(angleDiff);
+    dwc1_centerPos->Fill(centerPos.at(0));
+    dwc2_centerPos->Fill(centerPos.at(1));
 
-    // dwc_X_diff->Fill(dwc_pos.at(0) - dwc_pos.at(2));
-    // dwc_Y_diff->Fill(dwc_pos.at(1) - dwc_pos.at(3));
+    dwc1pos->Fill(dwc_pos.at(0), dwc_pos.at(1));
+    dwc2pos->Fill(dwc_pos.at(2), dwc_pos.at(3));
+    dwc1vs2x->Fill(dwc_pos.at(0), dwc_pos.at(2));
+    dwc1vx2y->Fill(dwc_pos.at(1), dwc_pos.at(3));
 
-    // dwc_X_diff_abs->Fill(std::abs(dwc_pos.at(0) - dwc_pos.at(2)));
-    // dwc_Y_diff_abs->Fill(std::abs(dwc_pos.at(1) - dwc_pos.at(3)));
+    dwc1_X->Fill(dwc_pos.at(0));
+    dwc1_Y->Fill(dwc_pos.at(1));
+    dwc2_X->Fill(dwc_pos.at(2));
+    dwc2_Y->Fill(dwc_pos.at(3));
 
-    // dwc_center_diff->Fill(lecDiff);
-    // dwc_center_diff_angle->Fill(angleDiff);
-    // dwc1_centerPos->Fill(centerPos.at(0));
-    // dwc2_centerPos->Fill(centerPos.at(1));
+    M1T1C_origin->Fill(M1TC_data.at(0).adc());
+    M1T2C_origin->Fill(M1TC_data.at(1).adc());
+    M1T3C_origin->Fill(M1TC_data.at(2).adc());
+    M1T4C_origin->Fill(M1TC_data.at(3).adc());
 
-    // dwc1pos->Fill(dwc_pos.at(0), dwc_pos.at(1));
-    // dwc2pos->Fill(dwc_pos.at(2), dwc_pos.at(3));
-    // dwc1vs2x->Fill(dwc_pos.at(0), dwc_pos.at(2));
-    // dwc1vx2y->Fill(dwc_pos.at(1), dwc_pos.at(3));
+    M1T1S_origin->Fill(M1TS_data.at(0).adc());
+    M1T2S_origin->Fill(M1TS_data.at(1).adc());
+    M1T3S_origin->Fill(M1TS_data.at(2).adc());
+    M1T4S_origin->Fill(M1TS_data.at(3).adc());
 
-    // dwc1_X->Fill(dwc_pos.at(0));
-    // dwc1_Y->Fill(dwc_pos.at(1));
-    // dwc2_X->Fill(dwc_pos.at(2));
-    // dwc2_Y->Fill(dwc_pos.at(3));
+    M2T1C_origin->Fill(M2TC_data.at(0).adc());
+    M2T2C_origin->Fill(M2TC_data.at(1).adc());
+    M2T3C_origin->Fill(M2TC_data.at(2).adc());
+    M2T4C_origin->Fill(M2TC_data.at(3).adc());
+    M2T6C_origin->Fill(M2TC_data.at(4).adc());
+    M2T7C_origin->Fill(M2TC_data.at(5).adc());
+    M2T8C_origin->Fill(M2TC_data.at(6).adc());
+    M2T9C_origin->Fill(M2TC_data.at(7).adc());
 
-    // M1T1C_origin->Fill(M1TC_data.at(0).adc());
-    // M1T2C_origin->Fill(M1TC_data.at(1).adc());
-    // M1T3C_origin->Fill(M1TC_data.at(2).adc());
-    // M1T4C_origin->Fill(M1TC_data.at(3).adc());
+    M2T1S_origin->Fill(M2TS_data.at(0).adc());
+    M2T2S_origin->Fill(M2TS_data.at(1).adc());
+    M2T3S_origin->Fill(M2TS_data.at(2).adc());
+    M2T4S_origin->Fill(M2TS_data.at(3).adc());
+    M2T6S_origin->Fill(M2TS_data.at(4).adc());
+    M2T7S_origin->Fill(M2TS_data.at(5).adc());
+    M2T8S_origin->Fill(M2TS_data.at(6).adc());
+    M2T9S_origin->Fill(M2TS_data.at(7).adc());
 
-    // M1T1S_origin->Fill(M1TS_data.at(0).adc());
-    // M1T2S_origin->Fill(M1TS_data.at(1).adc());
-    // M1T3S_origin->Fill(M1TS_data.at(2).adc());
-    // M1T4S_origin->Fill(M1TS_data.at(3).adc());
+    muFast->Fill(muADC);
+    psFast->Fill(psADC);
+    tcFast->Fill(tcADC);
+  } // event loop 
+  afile->Close();
 
-    // M2T1C_origin->Fill(M2TC_data.at(0).adc());
-    // M2T2C_origin->Fill(M2TC_data.at(1).adc());
-    // M2T3C_origin->Fill(M2TC_data.at(2).adc());
-    // M2T4C_origin->Fill(M2TC_data.at(3).adc());
-    // M2T6C_origin->Fill(M2TC_data.at(4).adc());
-    // M2T7C_origin->Fill(M2TC_data.at(5).adc());
-    // M2T8C_origin->Fill(M2TC_data.at(6).adc());
-    // M2T9C_origin->Fill(M2TC_data.at(7).adc());
+  TString addonName = "plots";
 
-    // M2T1S_origin->Fill(M2TS_data.at(0).adc());
-    // M2T2S_origin->Fill(M2TS_data.at(1).adc());
-    // M2T3S_origin->Fill(M2TS_data.at(2).adc());
-    // M2T4S_origin->Fill(M2TS_data.at(3).adc());
-    // M2T6S_origin->Fill(M2TS_data.at(4).adc());
-    // M2T7S_origin->Fill(M2TS_data.at(5).adc());
-    // M2T8S_origin->Fill(M2TS_data.at(6).adc());
-    // M2T9S_origin->Fill(M2TS_data.at(7).adc());
+  c->cd(); dwc_center_diff->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC_center_diff_modified_" + outputname + ".png");
+  c->cd(); dwc_center_diff_angle->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC_center_diffAngle_modified_" + outputname + ".png");
+  c->cd(); dwc1_centerPos->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC1_centerPos_" + outputname + ".png");
+  c->cd(); dwc2_centerPos->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC2_centerPos_" + outputname + ".png");
 
-    // dataTree->Fill();
+  c->cd(); dwc_X_diff->Draw("colz"); c->SaveAs("./" + addonName + "_DWC_X_diff_modified_" + outputname + ".png");
+  c->cd(); dwc_Y_diff->Draw("colz"); c->SaveAs("./" + addonName + "_DWC_Y_diff_modified_" + outputname + ".png");
 
-    // muFast->Fill(muADC);
-    // psFast->Fill(psADC);
-    // tcFast->Fill(tcADC);
-  } // event loop
+  c->cd(); dwc_X_diff_abs->Draw("colz"); c->SaveAs("./" + addonName + "_DWC_X_diff_abs_modified_" + outputname + ".png");
+  c->cd(); dwc_Y_diff_abs->Draw("colz"); c->SaveAs("./" + addonName + "_DWC_Y_diff_abs_modified_" + outputname + ".png");
 
-  // c->cd(); DWC1D1->Draw("Hist"); c->SaveAs(runNum + "_DWC1_R_" + outputname + ".png");
-  // c->cd(); DWC1D2->Draw("Hist"); c->SaveAs(runNum + "_DWC1_L_" + outputname + ".png");
-  // c->cd(); DWC1D3->Draw("Hist"); c->SaveAs(runNum + "_DWC1_U_" + outputname + ".png");
-  // c->cd(); DWC1D4->Draw("Hist"); c->SaveAs(runNum + "_DWC1_D_" + outputname + ".png");
-  // c->cd(); DWC2D1->Draw("Hist"); c->SaveAs(runNum + "_DWC2_R_" + outputname + ".png");
-  // c->cd(); DWC2D2->Draw("Hist"); c->SaveAs(runNum + "_DWC2_L_" + outputname + ".png");
-  // c->cd(); DWC2D3->Draw("Hist"); c->SaveAs(runNum + "_DWC2_U_" + outputname + ".png");
-  // c->cd(); DWC2D4->Draw("Hist"); c->SaveAs(runNum + "_DWC2_D_" + outputname + ".png");
+  c->cd(); dwc1pos->Draw("colz"); c->SaveAs("./" + addonName + "_DWC1_XvsY_modified_" + outputname + ".png");
+  c->cd(); dwc2pos->Draw("colz"); c->SaveAs("./" + addonName + "_DWC2_XvsY_modified_" + outputname + ".png");
+  c->cd(); dwc1vs2x->Draw("colz"); c->SaveAs("./" + addonName + "_DWC_X_1vs2_modified_" + outputname + ".png");
+  c->cd(); dwc1vx2y->Draw("colz"); c->SaveAs("./" + addonName + "_DWC_Y_1vs2_modified_" + outputname + ".png");
 
-  // c->cd(); DWC1RL->Draw("Hist"); c->SaveAs(runNum + "_DWC1_RL_" + outputname + ".png");
-  // c->cd(); DWC1DU->Draw("Hist"); c->SaveAs(runNum + "_DWC1_UD_" + outputname + ".png");
-  // c->cd(); DWC2RL->Draw("Hist"); c->SaveAs(runNum + "_DWC2_RL_" + outputname + ".png");
-  // c->cd(); DWC3DU->Draw("Hist"); c->SaveAs(runNum + "_DWC2_UD_" + outputname + ".png");
- 
-  // afile->Close();
+  c->cd(); dwc1_X->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC1_X_modified_" + outputname + ".png");
+  c->cd(); dwc1_Y->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC1_Y_modified_" + outputname + ".png");
+  c->cd(); dwc2_X->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC2_X_modified_" + outputname + ".png");
+  c->cd(); dwc2_Y->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC2_Y_modified_" + outputname + ".png");
 
-  // outputFile->cd();
-  // dataTree->Write();
-  // outputFile->Close();
+  c->cd(); muFast->Draw("Hist"); c->SaveAs("./" + addonName + "_MU_Fast_" + outputname + ".png");
+  c->cd(); psFast->Draw("Hist"); c->SaveAs("./" + addonName + "_PS_Fast_" + outputname + ".png");
+  c->cd(); tcFast->Draw("Hist"); c->SaveAs("./" + addonName + "_TC_Fast_" + outputname + ".png");
 
-  // TCanvas* c = new TCanvas("","");
+  c->cd(); M1T1C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T1C_Fast_" + outputname + ".png");
+  c->cd(); M1T2C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T2C_Fast_" + outputname + ".png");
+  c->cd(); M1T3C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T3C_Fast_" + outputname + ".png");
+  c->cd(); M1T4C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T4C_Fast_" + outputname + ".png");
 
-  // c->cd(); muPeak->Draw("Hist"); c->SaveAs(runNum + "_MU_" + outputname + ".png");
-  // c->cd(); psPeak->Draw("Hist"); c->SaveAs(runNum + "_PS_" + outputname + ".png");
-  // c->cd(); psCutMuPeak->Draw("Hist"); c->SaveAs(runNum + "_MU_" + outputname + ".png");
+  c->cd(); M1T1S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T1S_Fast_" + outputname + ".png");
+  c->cd(); M1T2S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T2S_Fast_" + outputname + ".png");
+  c->cd(); M1T3S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T3S_Fast_" + outputname + ".png");
+  c->cd(); M1T4S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T4S_Fast_" + outputname + ".png");
 
-  // TString addonName = "angleDiff_under0p01_mu_underMeanPlusOneSigma_ps_over2p5mip";
-  // TString addonName = "angleDiff_under0p01_mu_underMeanPlusOneSigma_ps_over1p5mip";
-  // TString addonName = "angleDiff_under0p01_mu_underMeanPlusOneSigma";
-  // TString addonName = "angleDiff_under0p01";
-  TString addonName = "origin";
+  c->cd(); M2T1C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T1C_Fast_" + outputname + ".png");
+  c->cd(); M2T2C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T2C_Fast_" + outputname + ".png");
+  c->cd(); M2T3C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T3C_Fast_" + outputname + ".png");
+  c->cd(); M2T4C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T4C_Fast_" + outputname + ".png");
+  c->cd(); M2T6C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T6C_Fast_" + outputname + ".png");
+  c->cd(); M2T7C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T7C_Fast_" + outputname + ".png");
+  c->cd(); M2T8C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T8C_Fast_" + outputname + ".png");
+  c->cd(); M2T9C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T9C_Fast_" + outputname + ".png");
 
-  if (takingCut == 1)
-    addonName = addonName + "_cut";
+  c->cd(); M2T1S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T1S_Fast_" + outputname + ".png");
+  c->cd(); M2T2S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T2S_Fast_" + outputname + ".png");
+  c->cd(); M2T3S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T3S_Fast_" + outputname + ".png");
+  c->cd(); M2T4S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T4S_Fast_" + outputname + ".png");
+  c->cd(); M2T6S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T6S_Fast_" + outputname + ".png");
+  c->cd(); M2T7S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T7S_Fast_" + outputname + ".png");
+  c->cd(); M2T8S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T8S_Fast_" + outputname + ".png");
+  c->cd(); M2T9S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T9S_Fast_" + outputname + ".png");
 
-  // TString addonName = "angleDiff_under0p4_mu_underMeanPlusOneSigma_ps_over2p5mip";
-  // TString addonName = "angleDiff_under0p4_mu_underMeanPlusOneSigma_ps_over1p5mip";
-  // TString addonName = "angleDiff_under0p4_mu_underMeanPlusOneSigma";
-
-  // TString addonName = "inVeto";
-  // TString addonName = "inVeto_angleDiff_under0p42_MuCut";
-  // TString addonName = "inVeto_angleDiff_under0p42_MuCut_PSover2p5mip";
-  // TString addonName = "inVeto_angleDiff_under0p42_MuCut_PSover2p5mip_TClower5000ADC";
-
-  // c->cd(); dwc_center_diff->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_DWC_center_diff_modified_" + outputname + ".png");
-  // c->cd(); dwc_center_diff_angle->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_DWC_center_diffAngle_modified_" + outputname + ".png");
-  // c->cd(); dwc1_centerPos->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_DWC1_centerPos_" + outputname + ".png");
-  // c->cd(); dwc2_centerPos->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_DWC2_centerPos_" + outputname + ".png");
-
-  // c->cd(); dwc_X_diff->Draw("colz"); c->SaveAs("./221108_pngs/" + addonName + "_DWC_X_diff_modified_" + outputname + ".png");
-  // c->cd(); dwc_Y_diff->Draw("colz"); c->SaveAs("./221108_pngs/" + addonName + "_DWC_Y_diff_modified_" + outputname + ".png");
-
-  // c->cd(); dwc_X_diff_abs->Draw("colz"); c->SaveAs("./221108_pngs/" + addonName + "_DWC_X_diff_abs_modified_" + outputname + ".png");
-  // c->cd(); dwc_Y_diff_abs->Draw("colz"); c->SaveAs("./221108_pngs/" + addonName + "_DWC_Y_diff_abs_modified_" + outputname + ".png");
-
-  // c->cd(); dwc1pos->Draw("colz"); c->SaveAs("./221108_pngs/" + addonName + "_DWC1_XvsY_modified_" + outputname + ".png");
-  // c->cd(); dwc2pos->Draw("colz"); c->SaveAs("./221108_pngs/" + addonName + "_DWC2_XvsY_modified_" + outputname + ".png");
-  // c->cd(); dwc1vs2x->Draw("colz"); c->SaveAs("./221108_pngs/" + addonName + "_DWC_X_1vs2_modified_" + outputname + ".png");
-  // c->cd(); dwc1vx2y->Draw("colz"); c->SaveAs("./221108_pngs/" + addonName + "_DWC_Y_1vs2_modified_" + outputname + ".png");
-
-  // c->cd(); dwc1_X->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_DWC1_X_modified_" + outputname + ".png");
-  // c->cd(); dwc1_Y->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_DWC1_Y_modified_" + outputname + ".png");
-  // c->cd(); dwc2_X->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_DWC2_X_modified_" + outputname + ".png");
-  // c->cd(); dwc2_Y->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_DWC2_Y_modified_" + outputname + ".png");
-
-  // c->cd(); muFast->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_MU_Fast_" + outputname + ".png");
-  // c->cd(); psFast->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_PS_Fast_" + outputname + ".png");
-  // c->cd(); tcFast->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_TC_Fast_" + outputname + ".png");
-
-  // c->cd(); muFast->Draw("Hist"); grE_Mu->Draw("sames+L"); c->SaveAs("./221108_pngs/" + addonName + "_MU_Fast_Fit_" + outputname + ".png");
-  // c->cd(); psFast->Draw("Hist"); grE_Ps->Draw("sames+L"); c->SaveAs("./221108_pngs/" + addonName + "_PS_Fast_Fit_" + outputname + ".png");
-
-  // c->cd(); M1T1C_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M1T1C_Fast_" + outputname + ".png");
-  // c->cd(); M1T2C_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M1T2C_Fast_" + outputname + ".png");
-  // c->cd(); M1T3C_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M1T3C_Fast_" + outputname + ".png");
-  // c->cd(); M1T4C_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M1T4C_Fast_" + outputname + ".png");
-
-  // c->cd(); M1T1S_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M1T1S_Fast_" + outputname + ".png");
-  // c->cd(); M1T2S_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M1T2S_Fast_" + outputname + ".png");
-  // c->cd(); M1T3S_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M1T3S_Fast_" + outputname + ".png");
-  // c->cd(); M1T4S_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M1T4S_Fast_" + outputname + ".png");
-
-  // c->cd(); M2T1C_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T1C_Fast_" + outputname + ".png");
-  // c->cd(); M2T2C_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T2C_Fast_" + outputname + ".png");
-  // c->cd(); M2T3C_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T3C_Fast_" + outputname + ".png");
-  // c->cd(); M2T4C_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T4C_Fast_" + outputname + ".png");
-  // c->cd(); M2T6C_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T6C_Fast_" + outputname + ".png");
-  // c->cd(); M2T7C_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T7C_Fast_" + outputname + ".png");
-  // c->cd(); M2T8C_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T8C_Fast_" + outputname + ".png");
-  // c->cd(); M2T9C_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T9C_Fast_" + outputname + ".png");
-
-  // c->cd(); M2T1S_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T1S_Fast_" + outputname + ".png");
-  // c->cd(); M2T2S_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T2S_Fast_" + outputname + ".png");
-  // c->cd(); M2T3S_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T3S_Fast_" + outputname + ".png");
-  // c->cd(); M2T4S_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T4S_Fast_" + outputname + ".png");
-  // c->cd(); M2T6S_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T6S_Fast_" + outputname + ".png");
-  // c->cd(); M2T7S_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T7S_Fast_" + outputname + ".png");
-  // c->cd(); M2T8S_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T8S_Fast_" + outputname + ".png");
-  // c->cd(); M2T9S_origin->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_M2T9S_Fast_" + outputname + ".png");
-
-  c->cd(); psdVSmoduleC->Draw("colz"); c->SaveAs("./221108_pngs/" + addonName + "_psdVSmoduleC_" + outputname + ".png");
-  c->cd(); psdVSmoduleS->Draw("colz"); c->SaveAs("./221108_pngs/" + addonName + "_psdVSmoduleS_" + outputname + ".png");
-
-  // c->SetLogy(); 
-  // c->cd(); muFast->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_MU_Fast_log_" + outputname + ".png");
-  // c->cd(); psFast->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_PS_Fast_log_" + outputname + ".png");
-  // c->cd(); tcFast->Draw("Hist"); c->SaveAs("./221108_pngs/" + addonName + "_TC_Fast_log_" + outputname + ".png");
-
-  // c->cd(); muFast->Draw("Hist"); grE_Mu->Draw("sames+L"); c->SaveAs("./221108_pngs/" + addonName + "_MU_Fast_fit_log_" + outputname + ".png");
-  // c->cd(); psFast->Draw("Hist"); grE_Ps->Draw("sames+L"); c->SaveAs("./221108_pngs/" + addonName + "_PS_Fast_fit_log_" + outputname + ".png");
+  c->SetLogy(); 
+  c->cd(); muFast->Draw("Hist"); c->SaveAs("./" + addonName + "_MU_Fast_log_" + outputname + ".png");
+  c->cd(); psFast->Draw("Hist"); c->SaveAs("./" + addonName + "_PS_Fast_log_" + outputname + ".png");
+  c->cd(); tcFast->Draw("Hist"); c->SaveAs("./" + addonName + "_TC_Fast_log_" + outputname + ".png");
 
   return 0;
 }
