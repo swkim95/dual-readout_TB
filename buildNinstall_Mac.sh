@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/zsh
 
 source envset_Mac.sh
 mkdir build install
