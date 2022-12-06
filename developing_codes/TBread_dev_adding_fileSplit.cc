@@ -262,12 +262,6 @@ void TBread::ntuplizeWaveform(const boost::python::list& alist, const std::strin
   int totalEntry = *std::min_element(entryPerMID.begin(), entryPerMID.end());
   if ( (totalEntry > maxEntry) && (maxEntry != -1) ) totalEntry = maxEntry;
   std::cout << "Total entry = " << totalEntry << std::endl;
-  if (entryPerSplit != -1 ) {
-    std::cout << "Total " << ( (totalEntry / entryPerSplit) + 1) << " ntuple files will be created" << std::endl;
-  }
-  else {
-    std::cout << "Total 1 ntuple file will be created" << std::endl;
-  }
 
   // create container for the binary files, total # of files = MIDs * FileNums
   std::vector< std::vector<FILE*> > files( numOfFiles, std::vector<FILE*>(numOfMID) );
@@ -340,9 +334,7 @@ void TBread::ntuplizeWaveform(const boost::python::list& alist, const std::strin
       rootFilePostFix++;
 
       TFile* outputRootFile = TFile::Open(fName.c_str(), "RECREATE");
-      // outputRootFile->WriteTObject(rootTree);
-      outputRootFile->cd();
-      rootTree->Write();
+      outputRootFile->WriteTObject(rootTree);
       outputRootFile->Close();
 
       rootTree->Reset();
@@ -363,11 +355,8 @@ void TBread::ntuplizeWaveform(const boost::python::list& alist, const std::strin
     std::cout << std::endl;
     std::cout << "Splitting output root file with name : " << fName << std::endl;
     TFile* outputRootFile = TFile::Open(fName.c_str(), "RECREATE");
-    // outputRootFile->WriteTObject(rootTree);
-    outputRootFile->cd();
-    rootTree->Write();
+    outputRootFile->WriteTObject(rootTree);
     outputRootFile->Close();
-    delete rootTree;
   }
 }
 
@@ -489,9 +478,7 @@ void TBread::ntuplizeFastmode(const boost::python::list& alist, const std::strin
       rootFilePostFix++;
 
       TFile* outputRootFile = TFile::Open(fName.c_str(), "RECREATE");
-      // outputRootFile->WriteTObject(rootTree);
-      outputRootFile->cd();
-      rootTree->Write();
+      outputRootFile->WriteTObject(rootTree);
       outputRootFile->Close();
 
       rootTree->Reset();
@@ -512,10 +499,7 @@ void TBread::ntuplizeFastmode(const boost::python::list& alist, const std::strin
     std::cout << std::endl;
     std::cout << "Splitting output root file with name : " << fName << std::endl;
     TFile* outputRootFile = TFile::Open(fName.c_str(), "RECREATE");
-    // outputRootFile->WriteTObject(rootTree);
-    outputRootFile->cd();
-    rootTree->Write();
+    outputRootFile->WriteTObject(rootTree);
     outputRootFile->Close();
-    delete rootTree;
   }
 }

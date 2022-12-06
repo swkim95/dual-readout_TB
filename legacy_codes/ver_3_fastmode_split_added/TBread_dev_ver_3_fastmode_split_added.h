@@ -11,7 +11,10 @@ public:
   TBread() {}
   ~TBread() {}
 
-  void ntuplizeWaveform(const boost::python::list& alist, const std::string& output, const int maxEntry, const int entryPerSplit);
+  void ntuplizeWaveform(const boost::python::list& alist, const std::string& output);
+  void ntuplizeFastmode(const boost::python::list& alist, const std::string& output);
+
+  // void ntuplizeWaveform(const boost::python::list& alist, const std::string& output, const int maxEntry, const int entryPerSplit);
   void ntuplizeFastmode(const boost::python::list& alist, const std::string& output, const int maxEntry, const int entryPerSplit);
 
   std::string mappingpath() const { return mappingpath_; }
@@ -25,6 +28,7 @@ public:
 private:
   TBmidbase readMetadata(FILE* fp);
   void printProgress(const int currentStep, const int progressStep);
+  // std::vector< std::map<FILE*, int> > getSplitFileList(const int maxEntry, const int entryPerSplit);
 
   std::string mappingpath_;
   std::string pedestalpath_;

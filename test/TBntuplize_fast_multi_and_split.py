@@ -31,7 +31,8 @@ for fn in range(maxFileNum) :
             print(fileName,"not found")
     fastFiles.append(FastFilesPerFN)
 
-nameFast = f"ntuple_Run_{rn}_Fast_FILE_total.root"
+# nameFast = f"ntuple_Run_{rn}_Fast_FILE_total.root"
+nameFast = f"ntuple_Run_{rn}_Fast"
 
 reader = pydrcTB.TBread()
-reader.ntuplizeFastmode(fastFiles,nameFast)
+reader.ntuplizeFastmode(fastFiles,nameFast, -1, 100000)
