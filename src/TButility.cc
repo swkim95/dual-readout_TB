@@ -141,3 +141,38 @@ int TButility::pid(float psadc, float muadc=0.) const {
 
   return pid;
 }
+
+TBcid TButility::getcid(TBdetector::detid did) const {
+
+  for ( auto detInfo : mapping_ ) 
+    if ( detInfo.second.det() == did )
+      return detInfo.first;
+
+  return TBcid(0, 0);
+}
+
+TBcid TButility::getcid(TBdetector::detid did, int module, int tower, bool isCeren) const {
+
+  for ( auto detInfo : mapping_ ) 
+    if ( detInfo.second.det() == did 
+      && detInfo.second.module() == module
+      && detInfo.second.tower() == tower
+      && detInfo.second.isCeren() == isCeren )
+      return detInfo.first;
+
+  return TBcid(0, 0);
+}
+
+TBcid TButility::getcid(TBdetector::detid did, int module, int tower, int column, int plate, bool isCeren) const {
+
+  for ( auto detInfo : mapping_ ) 
+    if ( detInfo.second.det() == did 
+      && detInfo.second.module() == module
+      && detInfo.second.tower() == tower
+      && detInfo.second.column() == column
+      && detInfo.second.plate() == plate
+      && detInfo.second.isCeren() == isCeren )
+      return detInfo.first;
+
+  return TBcid(0, 0);
+}

@@ -222,14 +222,70 @@ TBmid<TBfastmode> TBread::readFastmode(FILE* fp) {
   return std::move(amid);
 }
 
-void TBread::ntuplizeWaveform(const boost::python::list& alist, const std::string& output, const int maxEntry, const int entryPerSplit) {
+void TBread::ntuplizeWaveform(const boost::python::list& alist, const std::string& output) {
+  std::vector<std::string> filenames;
+
+  for (unsigned idx = 0; idx < boost::python::len(alist); idx++)
+    filenames.push_back(boost::python::extract<std::string>(alist[idx]));
+
+  // get # of events in file
+  FILE* fp = fopen(filenames.front().c_str(), "rb");
+  fseek(fp, 0L, SEEK_END);
+  unsigned long long file_size = ftell(fp);
+  fclose(fp);
+  int nevt = file_size / 65536;
+
+  std::vector<FILE*> files;
+  files.reserve(filenames.size());
+
+  for (unsigned int idx = 0; idx < filenames.size(); idx++)
+    files.emplace_back( fopen(filenames.at(idx).c_str(), "rb") );
+
+  auto anevt = TBevt<TBwaveform>();
+  TFile* rootfile = TFile::Open(output.c_str(),"RECREATE");
+  auto roottree = new TTree("events","waveform events");
+  roottree->Branch("TBevt",&anevt);
+
+  for (unsigned ievt = 0; ievt < nevt; ievt++) {
+    // fill TBevt
+    std::vector<TBmid<TBwaveform>> mids;
+    mids.reserve(files.size());
+
+    // reference mid
+    TBmid<TBwaveform> midref = readWaveform(files.at(0));
+    int refevt = midref.evt();
+    mids.emplace_back(midref);
+    anevt.setTCB(refevt);
+
+    for (unsigned int idx = 1; idx < files.size(); idx++) {
+      TBmid<TBwaveform> amid = readWaveform(files.at(idx));
+
+      if (amid.evt()!=refevt) // TODO tcb_trig_number difference handling
+        throw std::runtime_error("TCB trig numbers are different!");
+
+      mids.emplace_back(amid);
+    }
+
+    anevt.set(mids);
+
+    roottree->Fill();
+  }
+
+  for (unsigned int idx = 0; idx < files.size(); idx++)
+    fclose(files.at(idx));
+
+  rootfile->WriteTObject(roottree);
+  rootfile->Close();
+}
+
+void TBread::ntuplizeFastmode(const boost::python::list& alist, const std::string& output) {
   // get max file number (fileNum 0 ~ fileNum N) >> numOfFiles == N+1
   const int numOfFiles = boost::python::len(alist);
 
   // Vector storing all files (initialized with size of all file numbers * all MIDs)
   // { {file0_MID1, file0_MID2, ... file0_MID15},
   //   {file1_MID1, file1_MID2,... file1_MID15},
-  //   ...
+  //                     ...
   //   {fileN_MID1, fileN_MID2,... fileN_MID15} }
   // totalFiles[file number][MID] >> return single file name
   std::vector< std::vector<std::string> > totalFiles(numOfFiles, std::vector<std::string>(boost::python::len(alist[0])));
@@ -251,23 +307,14 @@ void TBread::ntuplizeWaveform(const boost::python::list& alist, const std::strin
     for (unsigned MID = 0; MID < numOfMID; MID++) {
       FILE* fp = fopen(totalFiles[fileNum][MID].c_str(), "rb");
       fseek(fp, 0L, SEEK_END);
-      unsigned long long file_size = ftell(fp);
+      int file_size = ftell(fp);
       fclose(fp);
-      entryPerMID[MID] += (int)(file_size / 65536);
-      entryPerFile[fileNum][MID] = (int)(file_size / 65536);
+      entryPerMID[MID] += (int)(file_size / 256);
+      entryPerFile[fileNum][MID] = (int)(file_size / 256);
     }
   }
-
-  // get total # of entries to be actually filled in ntuples
   int totalEntry = *std::min_element(entryPerMID.begin(), entryPerMID.end());
-  if ( (totalEntry > maxEntry) && (maxEntry != -1) ) totalEntry = maxEntry;
   std::cout << "Total entry = " << totalEntry << std::endl;
-  if (entryPerSplit != -1 ) {
-    std::cout << "Total " << ( (totalEntry / entryPerSplit) + 1) << " ntuple files will be created" << std::endl;
-  }
-  else {
-    std::cout << "Total 1 ntuple file will be created" << std::endl;
-  }
 
   // create container for the binary files, total # of files = MIDs * FileNums
   std::vector< std::vector<FILE*> > files( numOfFiles, std::vector<FILE*>(numOfMID) );
@@ -278,16 +325,16 @@ void TBread::ntuplizeWaveform(const boost::python::list& alist, const std::strin
   }
 
   // setting ntuple ROOT file
-  auto anEvtData = TBevt<TBwaveform>();
-  auto rootTree = new TTree("events","waveform events");
-  rootTree->Branch("TBevt",&anEvtData);
-  rootTree->SetAutoSave(0);
+  auto anEvtData = TBevt<TBfastmode>();
+  TFile* rootfile = TFile::Open(output.c_str(),"RECREATE");
+  auto roottree = new TTree("events","fastmode events");
+  roottree->Branch("TBevt",&anEvtData);
+  roottree->SetAutoSave(0);
 
   // vector containing currently opened file number for each MID
   // vector containing event passed for currently opened file for each MID
   std::vector<int> currentOpenFileNum(numOfMID);
   std::vector<int> entryCounted(numOfMID);
-  int rootFilePostFix = 0;
   // Loop over total events to fill ntuple ROOT file
   for (unsigned iEvt = 0; iEvt < totalEntry; iEvt++) {
     // if count[MID] exceeds # of entry of corresponding file, move to next file
@@ -301,18 +348,18 @@ void TBread::ntuplizeWaveform(const boost::python::list& alist, const std::strin
     }
 
     // fill TBevt
-    // vector containing waveform MID info
-    std::vector<TBmid<TBwaveform>> MIDs;
+    // vector containing fastmode MID info
+    std::vector<TBmid<TBfastmode>> MIDs;
     MIDs.reserve(numOfMID);
 
     // Use MID 1 as reference MID
-    TBmid<TBwaveform> RefMID = readWaveform(files[currentOpenFileNum[0]][0]);
+    TBmid<TBfastmode> RefMID = readFastmode(files[currentOpenFileNum[0]][0]);
     MIDs.emplace_back(RefMID);
     anEvtData.setTCB(RefMID.evt());
     // Loop over MID 2 ~ 15 & fill MIDs vector
     for (unsigned MID = 1; MID < numOfMID; MID++) {
       int fileNum = currentOpenFileNum[MID];
-      TBmid<TBwaveform> aMID = readWaveform(files[fileNum][MID]);
+      TBmid<TBfastmode> aMID = readFastmode(files[fileNum][MID]);
       // throw error if evt from MID 2 ~ 15 differs from MID 1 evt
       if (aMID.tcb_trig_number() != RefMID.tcb_trig_number()) {
         std::cout << "[Error] Current event number : " << iEvt << std::endl;
@@ -323,31 +370,23 @@ void TBread::ntuplizeWaveform(const boost::python::list& alist, const std::strin
       MIDs.emplace_back(aMID);
     }
     anEvtData.set(MIDs);
-    rootTree->Fill();
+    roottree->Fill();
 
     // end of evt loop >> increase # of entry counted per file
     for (unsigned MID = 0; MID < numOfMID; MID++) entryCounted[MID]++;
 
     // print progress
-    printProgress( (iEvt + 1) , totalEntry);
-
-    // write Ntuple root file with int(entryPerSplit) events in it
-    // if total entry > entryPerSplit, then only one output root file is needed, so skip this step
-    if( ((iEvt + 1) % entryPerSplit == 0) && (entryPerSplit != -1) ) {
-      auto fName = (output + "_" + std::to_string(rootFilePostFix) + ".root");
-      std::cout << std::endl;
-      std::cout << "Splitting output root file with name : " << fName << std::endl;
-      rootFilePostFix++;
-
-      TFile* outputRootFile = TFile::Open(fName.c_str(), "RECREATE");
-      // outputRootFile->WriteTObject(rootTree);
-      outputRootFile->cd();
-      rootTree->Write();
-      outputRootFile->Close();
-
-      rootTree->Reset();
-      rootTree->SetAutoSave(0);
+    float progress = (float) iEvt / totalEntry;
+    int barWidth = 70;
+    std::cout << "[";
+    int pos = barWidth * progress;
+    for (int i = 0; i < barWidth; i++) {
+      if ( i < pos ) std::cout << "=";
+      else if (i == pos) std::cout << ">";
+      else std::cout << " ";
     }
+    std::cout << "]  " << iEvt << "/" << totalEntry << "  " << int(progress * 100.0) << "%\r";
+    std::cout.flush();
   }
   
   // closing files
@@ -357,18 +396,9 @@ void TBread::ntuplizeWaveform(const boost::python::list& alist, const std::strin
     }
   }
 
-  // wite Ntuple if there exists some leftover events
-  if (rootTree->GetEntries() != 0) {
-    auto fName = (output + "_" + std::to_string(rootFilePostFix) + ".root");
-    std::cout << std::endl;
-    std::cout << "Splitting output root file with name : " << fName << std::endl;
-    TFile* outputRootFile = TFile::Open(fName.c_str(), "RECREATE");
-    // outputRootFile->WriteTObject(rootTree);
-    outputRootFile->cd();
-    rootTree->Write();
-    outputRootFile->Close();
-    delete rootTree;
-  }
+  // wite Ntuple
+  rootfile->WriteTObject(roottree);
+  rootfile->Close();
 }
 
 void TBread::ntuplizeFastmode(const boost::python::list& alist, const std::string& output, const int maxEntry, const int entryPerSplit) {
@@ -400,23 +430,15 @@ void TBread::ntuplizeFastmode(const boost::python::list& alist, const std::strin
     for (unsigned MID = 0; MID < numOfMID; MID++) {
       FILE* fp = fopen(totalFiles[fileNum][MID].c_str(), "rb");
       fseek(fp, 0L, SEEK_END);
-      unsigned long long file_size = ftell(fp);
+      int file_size = ftell(fp);
       fclose(fp);
       entryPerMID[MID] += (int)(file_size / 256);
       entryPerFile[fileNum][MID] = (int)(file_size / 256);
     }
   }
-
-  // get total # of entries to be actually filled in ntuples
   int totalEntry = *std::min_element(entryPerMID.begin(), entryPerMID.end());
   if ( (totalEntry > maxEntry) && (maxEntry != -1) ) totalEntry = maxEntry;
   std::cout << "Total entry = " << totalEntry << std::endl;
-  if (entryPerSplit != -1 ) {
-    std::cout << "Total " << ( (totalEntry / entryPerSplit) + 1) << " ntuple files will be created" << std::endl;
-  }
-  else {
-    std::cout << "Total 1 ntuple file will be created" << std::endl;
-  }
 
   // create container for the binary files, total # of files = MIDs * FileNums
   std::vector< std::vector<FILE*> > files( numOfFiles, std::vector<FILE*>(numOfMID) );
@@ -428,9 +450,9 @@ void TBread::ntuplizeFastmode(const boost::python::list& alist, const std::strin
 
   // setting ntuple ROOT file
   auto anEvtData = TBevt<TBfastmode>();
-  auto rootTree = new TTree("events","fastmode events");
-  rootTree->Branch("TBevt",&anEvtData);
-  rootTree->SetAutoSave(0);
+  auto roottree = new TTree("events","fastmode events");
+  roottree->Branch("TBevt",&anEvtData);
+  roottree->SetAutoSave(0);
 
   // vector containing currently opened file number for each MID
   // vector containing event passed for currently opened file for each MID
@@ -472,30 +494,43 @@ void TBread::ntuplizeFastmode(const boost::python::list& alist, const std::strin
       MIDs.emplace_back(aMID);
     }
     anEvtData.set(MIDs);
-    rootTree->Fill();
+    roottree->Fill();
 
     // end of evt loop >> increase # of entry counted per file
     for (unsigned MID = 0; MID < numOfMID; MID++) entryCounted[MID]++;
 
     // print progress
     printProgress( (iEvt + 1) , totalEntry);
+    // float progress = (float) iEvt / totalEntry;
+    // int barWidth = 70;
+    // std::cout << "[";
+    // int pos = barWidth * progress;
+    // for (int i = 0; i < barWidth; i++) {
+    //   if ( i < pos ) std::cout << "=";
+    //   else if (i == pos) std::cout << ">";
+    //   else std::cout << " ";
+    // }
+    // std::cout << "]  " << iEvt << "/" << totalEntry << "  " << int(progress * 100.0) << "%\r";
+    // std::cout.flush();
 
-    // write Ntuple root file with int(entryPerSplit) events in it
-    // if total entry > entryPerSplit, then only one output root file is needed, so skip this step
-    if( ((iEvt + 1) % entryPerSplit == 0) && (entryPerSplit != -1) ) {
+    if( (iEvt + 1) == totalEntry ) {
+      std::cout << "Event loop reached to maximum value : " << totalEntry << std::endl;
+      std::cout << "Finishing & producing ntuple" << std::endl;
+      break;
+    } 
+
+    if( (iEvt + 1) % entryPerSplit == 0 ) {
       auto fName = (output + "_" + std::to_string(rootFilePostFix) + ".root");
-      std::cout << std::endl;
       std::cout << "Splitting output root file with name : " << fName << std::endl;
       rootFilePostFix++;
 
-      TFile* outputRootFile = TFile::Open(fName.c_str(), "RECREATE");
-      // outputRootFile->WriteTObject(rootTree);
-      outputRootFile->cd();
-      rootTree->Write();
-      outputRootFile->Close();
+      TFile* intermediateRootFile = TFile::Open(fName.c_str() ,"RECREATE");
+      intermediateRootFile->WriteTObject(roottree);
+      intermediateRootFile->Close();
 
-      rootTree->Reset();
-      rootTree->SetAutoSave(0);
+      roottree->Reset();
+      // roottree->Branch("TBevt",&anEvtData);
+      roottree->SetAutoSave(0);
     }
   }
   
@@ -506,16 +541,10 @@ void TBread::ntuplizeFastmode(const boost::python::list& alist, const std::strin
     }
   }
 
-  // wite Ntuple if there exists some leftover events
-  if (rootTree->GetEntries() != 0) {
-    auto fName = (output + "_" + std::to_string(rootFilePostFix) + ".root");
-    std::cout << std::endl;
-    std::cout << "Splitting output root file with name : " << fName << std::endl;
-    TFile* outputRootFile = TFile::Open(fName.c_str(), "RECREATE");
-    // outputRootFile->WriteTObject(rootTree);
-    outputRootFile->cd();
-    rootTree->Write();
-    outputRootFile->Close();
-    delete rootTree;
-  }
+  // wite Ntuple
+  auto fName = (output + "_" + std::to_string(rootFilePostFix) + ".root");
+  TFile* rootfile = TFile::Open(fName.c_str(), "RECREATE");
+  // TFile* rootfile = TFile::Open(output.c_str(),"RECREATE");
+  rootfile->WriteTObject(roottree);
+  rootfile->Close();
 }
