@@ -19,8 +19,13 @@
 #include <TH2D.h>
 #include <TCanvas.h>
 
-constexpr double const_pi() { 
-  return std::atan(1) * 4;
+// constexpr double const_pi() { 
+//   return std::atan(1) * 4;
+// }
+
+// for running on My Mac
+double const_pi() { 
+  return M_PI;
 }
 
 float peakADC(std::vector<short> waveform) {
@@ -163,9 +168,9 @@ int main(int argc, char** argv) {
 
   gStyle->SetOptFit(1);
 
-  TString baseDir = "/pnfs/knu.ac.kr/data/cms/store/user/khwang/Aug2022TB/ntuple/fastmode/";
+  TString baseDir = "/Users/swkim/DRC/dual-readout_TB/test/";
   TString runNum = argv[1];
-  TString filename = baseDir + "ntuple_Run_" + runNum + "_Fast.root";
+  TString filename = baseDir + "ntuple_Run_" + runNum + "_Fast_FILE_total.root";
 
   int maxEvents = std::stoi(argv[2]); 
   TString outputname = argv[3];
@@ -416,63 +421,63 @@ int main(int argc, char** argv) {
 
   TString addonName = "plots";
 
-  c->cd(); dwc_center_diff->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC_center_diff_modified_" + outputname + ".png");
-  c->cd(); dwc_center_diff_angle->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC_center_diffAngle_modified_" + outputname + ".png");
-  c->cd(); dwc1_centerPos->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC1_centerPos_" + outputname + ".png");
-  c->cd(); dwc2_centerPos->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC2_centerPos_" + outputname + ".png");
+  c->cd(); dwc_center_diff->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_DWC_center_diff_modified_" + outputname + ".png");
+  c->cd(); dwc_center_diff_angle->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_DWC_center_diffAngle_modified_" + outputname + ".png");
+  c->cd(); dwc1_centerPos->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_DWC1_centerPos_" + outputname + ".png");
+  c->cd(); dwc2_centerPos->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_DWC2_centerPos_" + outputname + ".png");
 
-  c->cd(); dwc_X_diff->Draw("colz"); c->SaveAs("./" + addonName + "_DWC_X_diff_modified_" + outputname + ".png");
-  c->cd(); dwc_Y_diff->Draw("colz"); c->SaveAs("./" + addonName + "_DWC_Y_diff_modified_" + outputname + ".png");
+  c->cd(); dwc_X_diff->Draw("colz"); c->SaveAs("./fastPlots/" + addonName + "_DWC_X_diff_modified_" + outputname + ".png");
+  c->cd(); dwc_Y_diff->Draw("colz"); c->SaveAs("./fastPlots/" + addonName + "_DWC_Y_diff_modified_" + outputname + ".png");
 
-  c->cd(); dwc_X_diff_abs->Draw("colz"); c->SaveAs("./" + addonName + "_DWC_X_diff_abs_modified_" + outputname + ".png");
-  c->cd(); dwc_Y_diff_abs->Draw("colz"); c->SaveAs("./" + addonName + "_DWC_Y_diff_abs_modified_" + outputname + ".png");
+  c->cd(); dwc_X_diff_abs->Draw("colz"); c->SaveAs("./fastPlots/" + addonName + "_DWC_X_diff_abs_modified_" + outputname + ".png");
+  c->cd(); dwc_Y_diff_abs->Draw("colz"); c->SaveAs("./fastPlots/" + addonName + "_DWC_Y_diff_abs_modified_" + outputname + ".png");
 
-  c->cd(); dwc1pos->Draw("colz"); c->SaveAs("./" + addonName + "_DWC1_XvsY_modified_" + outputname + ".png");
-  c->cd(); dwc2pos->Draw("colz"); c->SaveAs("./" + addonName + "_DWC2_XvsY_modified_" + outputname + ".png");
-  c->cd(); dwc1vs2x->Draw("colz"); c->SaveAs("./" + addonName + "_DWC_X_1vs2_modified_" + outputname + ".png");
-  c->cd(); dwc1vx2y->Draw("colz"); c->SaveAs("./" + addonName + "_DWC_Y_1vs2_modified_" + outputname + ".png");
+  c->cd(); dwc1pos->Draw("colz"); c->SaveAs("./fastPlots/" + addonName + "_DWC1_XvsY_modified_" + outputname + ".png");
+  c->cd(); dwc2pos->Draw("colz"); c->SaveAs("./fastPlots/" + addonName + "_DWC2_XvsY_modified_" + outputname + ".png");
+  c->cd(); dwc1vs2x->Draw("colz"); c->SaveAs("./fastPlots/" + addonName + "_DWC_X_1vs2_modified_" + outputname + ".png");
+  c->cd(); dwc1vx2y->Draw("colz"); c->SaveAs("./fastPlots/" + addonName + "_DWC_Y_1vs2_modified_" + outputname + ".png");
 
-  c->cd(); dwc1_X->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC1_X_modified_" + outputname + ".png");
-  c->cd(); dwc1_Y->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC1_Y_modified_" + outputname + ".png");
-  c->cd(); dwc2_X->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC2_X_modified_" + outputname + ".png");
-  c->cd(); dwc2_Y->Draw("Hist"); c->SaveAs("./" + addonName + "_DWC2_Y_modified_" + outputname + ".png");
+  c->cd(); dwc1_X->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_DWC1_X_modified_" + outputname + ".png");
+  c->cd(); dwc1_Y->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_DWC1_Y_modified_" + outputname + ".png");
+  c->cd(); dwc2_X->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_DWC2_X_modified_" + outputname + ".png");
+  c->cd(); dwc2_Y->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_DWC2_Y_modified_" + outputname + ".png");
 
-  c->cd(); muFast->Draw("Hist"); c->SaveAs("./" + addonName + "_MU_Fast_" + outputname + ".png");
-  c->cd(); psFast->Draw("Hist"); c->SaveAs("./" + addonName + "_PS_Fast_" + outputname + ".png");
-  c->cd(); tcFast->Draw("Hist"); c->SaveAs("./" + addonName + "_TC_Fast_" + outputname + ".png");
+  c->cd(); muFast->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_MU_Fast_" + outputname + ".png");
+  c->cd(); psFast->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_PS_Fast_" + outputname + ".png");
+  c->cd(); tcFast->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_TC_Fast_" + outputname + ".png");
 
-  c->cd(); M1T1C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T1C_Fast_" + outputname + ".png");
-  c->cd(); M1T2C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T2C_Fast_" + outputname + ".png");
-  c->cd(); M1T3C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T3C_Fast_" + outputname + ".png");
-  c->cd(); M1T4C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T4C_Fast_" + outputname + ".png");
+  c->cd(); M1T1C_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M1T1C_Fast_" + outputname + ".png");
+  c->cd(); M1T2C_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M1T2C_Fast_" + outputname + ".png");
+  c->cd(); M1T3C_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M1T3C_Fast_" + outputname + ".png");
+  c->cd(); M1T4C_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M1T4C_Fast_" + outputname + ".png");
 
-  c->cd(); M1T1S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T1S_Fast_" + outputname + ".png");
-  c->cd(); M1T2S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T2S_Fast_" + outputname + ".png");
-  c->cd(); M1T3S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T3S_Fast_" + outputname + ".png");
-  c->cd(); M1T4S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M1T4S_Fast_" + outputname + ".png");
+  c->cd(); M1T1S_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M1T1S_Fast_" + outputname + ".png");
+  c->cd(); M1T2S_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M1T2S_Fast_" + outputname + ".png");
+  c->cd(); M1T3S_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M1T3S_Fast_" + outputname + ".png");
+  c->cd(); M1T4S_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M1T4S_Fast_" + outputname + ".png");
 
-  c->cd(); M2T1C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T1C_Fast_" + outputname + ".png");
-  c->cd(); M2T2C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T2C_Fast_" + outputname + ".png");
-  c->cd(); M2T3C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T3C_Fast_" + outputname + ".png");
-  c->cd(); M2T4C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T4C_Fast_" + outputname + ".png");
-  c->cd(); M2T6C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T6C_Fast_" + outputname + ".png");
-  c->cd(); M2T7C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T7C_Fast_" + outputname + ".png");
-  c->cd(); M2T8C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T8C_Fast_" + outputname + ".png");
-  c->cd(); M2T9C_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T9C_Fast_" + outputname + ".png");
+  c->cd(); M2T1C_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T1C_Fast_" + outputname + ".png");
+  c->cd(); M2T2C_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T2C_Fast_" + outputname + ".png");
+  c->cd(); M2T3C_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T3C_Fast_" + outputname + ".png");
+  c->cd(); M2T4C_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T4C_Fast_" + outputname + ".png");
+  c->cd(); M2T6C_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T6C_Fast_" + outputname + ".png");
+  c->cd(); M2T7C_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T7C_Fast_" + outputname + ".png");
+  c->cd(); M2T8C_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T8C_Fast_" + outputname + ".png");
+  c->cd(); M2T9C_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T9C_Fast_" + outputname + ".png");
 
-  c->cd(); M2T1S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T1S_Fast_" + outputname + ".png");
-  c->cd(); M2T2S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T2S_Fast_" + outputname + ".png");
-  c->cd(); M2T3S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T3S_Fast_" + outputname + ".png");
-  c->cd(); M2T4S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T4S_Fast_" + outputname + ".png");
-  c->cd(); M2T6S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T6S_Fast_" + outputname + ".png");
-  c->cd(); M2T7S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T7S_Fast_" + outputname + ".png");
-  c->cd(); M2T8S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T8S_Fast_" + outputname + ".png");
-  c->cd(); M2T9S_origin->Draw("Hist"); c->SaveAs("./" + addonName + "_M2T9S_Fast_" + outputname + ".png");
+  c->cd(); M2T1S_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T1S_Fast_" + outputname + ".png");
+  c->cd(); M2T2S_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T2S_Fast_" + outputname + ".png");
+  c->cd(); M2T3S_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T3S_Fast_" + outputname + ".png");
+  c->cd(); M2T4S_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T4S_Fast_" + outputname + ".png");
+  c->cd(); M2T6S_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T6S_Fast_" + outputname + ".png");
+  c->cd(); M2T7S_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T7S_Fast_" + outputname + ".png");
+  c->cd(); M2T8S_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T8S_Fast_" + outputname + ".png");
+  c->cd(); M2T9S_origin->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_M2T9S_Fast_" + outputname + ".png");
 
   c->SetLogy(); 
-  c->cd(); muFast->Draw("Hist"); c->SaveAs("./" + addonName + "_MU_Fast_log_" + outputname + ".png");
-  c->cd(); psFast->Draw("Hist"); c->SaveAs("./" + addonName + "_PS_Fast_log_" + outputname + ".png");
-  c->cd(); tcFast->Draw("Hist"); c->SaveAs("./" + addonName + "_TC_Fast_log_" + outputname + ".png");
+  c->cd(); muFast->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_MU_Fast_log_" + outputname + ".png");
+  c->cd(); psFast->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_PS_Fast_log_" + outputname + ".png");
+  c->cd(); tcFast->Draw("Hist"); c->SaveAs("./fastPlots/" + addonName + "_TC_Fast_log_" + outputname + ".png");
 
   return 0;
 }
