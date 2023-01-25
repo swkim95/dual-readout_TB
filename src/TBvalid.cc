@@ -196,7 +196,7 @@ TH1F* TBvalid::drawWaveHistFromData(const std::vector<std::vector<std::string>>&
     TCanvas* c = new TCanvas("","");
     c->cd();
     hist->Draw("Hist");
-    c->SaveAs(("./" + histName + ".png").c_str());
+    // c->SaveAs(("./" + histName + ".png").c_str());
 
     return hist;
 }
@@ -333,7 +333,7 @@ TH1F* TBvalid::drawWaveHistFromNtuple(const std::vector<std::string>& ntupleList
     TCanvas* c = new TCanvas("","");
     c->cd();
     hist->Draw("Hist");
-    c->SaveAs(("./" + histName + ".png").c_str());
+    // c->SaveAs(("./" + histName + ".png").c_str());
 
     return hist;
 }
