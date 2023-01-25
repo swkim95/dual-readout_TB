@@ -29,7 +29,15 @@ TBdetector::detid TButility::detid(int tid) const {
     return TBdetector::detid::tail;
   if ( static_cast<int>(TBdetector::detid::muon) == tid )
     return TBdetector::detid::muon;
-
+  if ( static_cast<int>(TBdetector::detid::SiPM) == tid )
+    return TBdetector::detid::SiPM;
+  if ( static_cast<int>(TBdetector::detid::PMT) == tid )
+    return TBdetector::detid::PMT;
+  if ( static_cast<int>(TBdetector::detid::Module3D_C) == tid )
+    return TBdetector::detid::Module3D_C;
+  if ( static_cast<int>(TBdetector::detid::Module3D_S) == tid )
+    return TBdetector::detid::Module3D_S;
+  
   return TBdetector::detid::nulldet;
 }
 
@@ -155,6 +163,31 @@ TBcid TButility::getcid(TBdetector::detid did, int module, int tower, bool isCer
 
   for ( auto detInfo : mapping_ ) 
     if ( detInfo.second.det() == did 
+      && detInfo.second.module() == module
+      && detInfo.second.tower() == tower
+      && detInfo.second.isCeren() == isCeren )
+      return detInfo.first;
+  
+  return TBcid(0, 0);
+}
+
+TBcid TButility::getcid(int module, int tower, bool isCeren) const {
+
+  for ( auto detInfo : mapping_ ) 
+    if ( detInfo.second.module() == module
+      && detInfo.second.tower() == tower
+      && detInfo.second.isCeren() == isCeren )
+      return detInfo.first;
+  
+  return TBcid(0, 0);
+}
+
+TBcid TButility::getcid(int did, int module, int tower, bool isCeren) const {
+
+    TBdetector::detid detid = TButility::detid(did);
+
+    for ( auto detInfo : mapping_ ) 
+    if ( detInfo.second.det() == detid 
       && detInfo.second.module() == module
       && detInfo.second.tower() == tower
       && detInfo.second.isCeren() == isCeren )

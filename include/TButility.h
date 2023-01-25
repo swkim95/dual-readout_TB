@@ -23,6 +23,8 @@ public:
 
   TBcid getcid(TBdetector::detid did) const;
   TBcid getcid(TBdetector::detid did, int module, int tower, bool isCeren) const;
+  TBcid getcid(int did, int module, int tower, bool isCeren) const;
+  TBcid getcid(int module, int tower, bool isCeren) const;
   TBcid getcid(TBdetector::detid did, int module, int tower, int column, int plate, bool isCeren) const;
 
   void setPSpedcut(float in) { PSpedcut_ = in; }
