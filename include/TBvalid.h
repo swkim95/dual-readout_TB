@@ -38,12 +38,12 @@ class TBvalid {
         TH1F* drawFastHistFromNtuple(TBcid cid, const std::string histName, bool drawTiming);
         TH1F* drawFastHistFromNtuple(const std::vector<std::string>& ntupleList, TBcid cid, const std::string histName, bool drawTiming);
 
-        // TH1F* drawWaveHistFromData(TBcid cid, const std::string histName, bool drawTiming);
-        // TH1F* drawWaveHistFromData(const std::vector<std::vector<std::string>>& datList, TBcid cid, const std::string histName, bool drawTiming);
-        // TH1F* drawWaveHistFromNtuple(TBcid cid, const std::string histName, bool drawTiming);
-        // TH1F* drawWaveHistFromNtuple(const std::vector<std::string>& ntupleList, TBcid cid, const std::string histName, bool drawTiming);
+        TH1F* drawWaveHistFromData(TBcid cid, const std::string histName);
+        TH1F* drawWaveHistFromData(const std::vector<std::vector<std::string>>& datList, TBcid cid, const std::string histName);
+        TH1F* drawWaveHistFromNtuple(TBcid cid, const std::string histName);
+        TH1F* drawWaveHistFromNtuple(const std::vector<std::string>& ntupleList, TBcid cid, const std::string histName);
         
-        void checkTrigNum();
+        void checkTrigNum(bool doFast);
         
         std::vector<std::vector<std::string>> readDataList(const boost::python::list& py_datList);
         std::vector<std::string> readNtupleList(const boost::python::list& py_ntupleList);

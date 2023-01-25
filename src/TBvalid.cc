@@ -121,6 +121,86 @@ void TBvalid::drawRatio(TH1F* num, TH1F* den, const std::string histName, const 
     delete c1;
 }
 
+TH1F* TBvalid::drawWaveHistFromData(TBcid cid, const std::string histName) {
+    if (this->datList_.size() == 0) {
+        std::cout << "No data list found, please use setDataList() first" << std::endl;
+        return NULL;
+    }
+    TH1F* ptr = drawWaveHistFromData(this->datList_, cid, histName);
+    return ptr;
+}
+
+TH1F* TBvalid::drawWaveHistFromData(const std::vector<std::vector<std::string>>& datList, TBcid cid, const std::string histName) {
+    std::cout << "Drawing waveform histogram from data files..." << std::endl;
+    TH1F* hist = new TH1F(histName.c_str(), histName.c_str(), 1024, 0., 1024.);
+    hist->SetLineWidth(2);
+    hist->SetLineColor(kBlue);
+
+    const int numOfMID = 15;
+    const int numOfFiles = datList.size();
+
+    std::vector<int> entryPerMID(numOfMID);
+    std::vector< std::vector<int> > entryPerFile( numOfFiles, std::vector<int>(numOfMID) );
+    for (unsigned fileNum = 0; fileNum < numOfFiles; fileNum++) {
+        for (unsigned MID = 0; MID < numOfMID; MID++) {
+        FILE* fp = fopen(datList[fileNum][MID].c_str(), "rb");
+        fseek(fp, 0L, SEEK_END);
+        unsigned long long file_size = ftell(fp);
+        fclose(fp);
+        entryPerMID[MID] += (int)(file_size / 65536);
+        entryPerFile[fileNum][MID] = (int)(file_size / 65536);
+        }
+    }
+    int totalEntry = *std::min_element(entryPerMID.begin(), entryPerMID.end());
+    std::cout << "Total Entry : " << totalEntry << std::endl;
+
+    std::vector<int> currentOpenFileNum(numOfMID);
+    std::vector<int> entryCounted(numOfMID);
+    std::vector<FILE*> files(numOfMID);
+    for (unsigned MID = 0; MID < numOfMID; MID++) {
+        files[MID] = fopen(datList[0][MID].c_str(), "rb");
+    }
+    TBevt<TBwaveform>* anEvtFromData = new TBevt<TBwaveform>();
+    // Start evt loop
+    for (unsigned iEvt = 0; iEvt < totalEntry; iEvt++){
+        // if count[MID] exceeds # of entry of corresponding file, move to next file
+        for (unsigned MID = 0; MID < numOfMID; MID++) {
+            // currently opened file number for each MID
+            if ( entryPerFile[currentOpenFileNum[MID]][MID] == entryCounted[MID] ) {
+                fclose(files[MID]);
+                currentOpenFileNum[MID]++;
+                files[MID] = fopen(datList[currentOpenFileNum[MID]][MID].c_str(), "rb");
+                entryCounted[MID] = 0;
+            }
+        }
+
+        TBread reader = TBread();
+        std::vector<TBmid<TBwaveform>> MIDs(numOfMID);
+        for (unsigned MID = 0; MID < numOfMID; MID++) {
+            MIDs[MID] = reader.readWaveform(files[MID]);
+        }
+        anEvtFromData->setTCB(MIDs[0].evt());
+        anEvtFromData->set(MIDs);
+
+        auto dataFromData = anEvtFromData->data(cid);
+        auto waveform = dataFromData.waveform();
+
+        for (int bin = 0; bin < waveform.size(); bin++){
+            hist->Fill(bin, waveform[bin]);
+        }
+
+        for (unsigned MID = 0; MID < numOfMID; MID++) entryCounted[MID]++;
+        printProgress( (iEvt + 1) , totalEntry);
+    }
+
+    TCanvas* c = new TCanvas("","");
+    c->cd();
+    hist->Draw("Hist");
+    c->SaveAs(("./" + histName + ".png").c_str());
+
+    return hist;
+}
+
 TH1F* TBvalid::drawFastHistFromData(TBcid cid, const std::string histName, bool drawTiming) {
     if (this->datList_.size() == 0) {
         std::cout << "No data list found, please use setDataList() first" << std::endl;
@@ -210,6 +290,54 @@ TH1F* TBvalid::drawFastHistFromData(const std::vector<std::vector<std::string>>&
     return hist;
 }
 
+
+TH1F* TBvalid::drawWaveHistFromNtuple(TBcid cid, const std::string histName) {
+    if (this->ntupleList_.size() == 0) {
+        std::cout << "No ntuple list found, please use setNtupleList() first" << std::endl;
+        return NULL;
+    }
+    TH1F* ptr = drawWaveHistFromNtuple(this->ntupleList_, cid, histName);
+    return ptr;
+}
+
+TH1F* TBvalid::drawWaveHistFromNtuple(const std::vector<std::string>& ntupleList, TBcid cid, const std::string histName) {
+    std::cout << "Drawing waveform histogram from ntuples..." << std::endl;
+    TH1F* hist = new TH1F(histName.c_str(), histName.c_str(), 1024, 0., 1024.);
+    hist->SetLineWidth(2);
+    hist->SetLineColor(kRed);
+
+    const int numOfMID = 15;
+    const int numOfFiles = ntupleList.size();
+
+    TChain* fileChain = new TChain("events");
+    for (std::string fName : ntupleList) {
+        fileChain->Add(fName.c_str());
+    }
+    int totalEntry = fileChain->GetEntries();
+    std::cout << "Total entries : " << totalEntry << std::endl;
+
+    TBevt<TBwaveform>* anEvtFromNtuple = new TBevt<TBwaveform>();
+    fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
+
+    for (unsigned iEvt = 0; iEvt < totalEntry; ++iEvt) {
+        fileChain->GetEntry(iEvt);
+        auto dataFromNtuple = anEvtFromNtuple->data(cid);
+        auto waveform = dataFromNtuple.waveform();
+
+        for (int bin = 0; bin < waveform.size(); ++bin) {
+            hist->Fill(bin, waveform[bin]);
+        }
+
+        printProgress(iEvt +1, totalEntry);
+    }
+    TCanvas* c = new TCanvas("","");
+    c->cd();
+    hist->Draw("Hist");
+    c->SaveAs(("./" + histName + ".png").c_str());
+
+    return hist;
+}
+
 TH1F* TBvalid::drawFastHistFromNtuple(TBcid cid, const std::string histName, bool drawTiming) {
     if (this->ntupleList_.size() == 0) {
         std::cout << "No ntuple list found, please use setNtupleList() first" << std::endl;
@@ -266,7 +394,7 @@ TH1F* TBvalid::drawFastHistFromNtuple(const std::vector<std::string>& ntupleList
     return hist;
 }
 
-void TBvalid::checkTrigNum() {
+void TBvalid::checkTrigNum(bool doFast) {
     std::cout << "Checking trigger numbers..." << std::endl;
     const int numOfMID = 15;
 
@@ -283,7 +411,9 @@ void TBvalid::checkTrigNum() {
 
     std::vector<int> prev_tcb_trig_number(numOfMID);
     
-    TBevt<TBfastmode>* anEvtFromNtuple = new TBevt<TBfastmode>();
+    TBevt<TBwaveform>* anEvtFromNtuple = new TBevt<TBwaveform>();
+    if (doFast) TBevt<TBfastmode>* anEvtFromNtuple = new TBevt<TBfastmode>();
+
     fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
     // Start event loop
     int err_count = 0;
