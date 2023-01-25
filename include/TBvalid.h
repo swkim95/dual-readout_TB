@@ -31,7 +31,7 @@ class TBvalid {
         TBvalid() {};
         ~TBvalid() {};
 
-        void drawRatio(TH1F* den, TH1F* num, const std::string histName);
+        void drawRatio(TH1F* den, TH1F* num, const std::string histName, const std::string outDir);
 
         TH1F* drawFastHistFromData(TBcid cid, const std::string histName, bool drawTiming);
         TH1F* drawFastHistFromData(const std::vector<std::vector<std::string>>& datList, TBcid cid, const std::string histName, bool drawTiming);

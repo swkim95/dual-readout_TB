@@ -20,6 +20,7 @@ parser.add_argument('--inputNtuple', '-in', action='store', type=str, help="Path
 parser.add_argument('--inputData', '-id', action='store', type=str, help="Path to input data files")
 # parser.add_argument('--doFast', '-f', action='store_true', default=False, help='If true, make fast mode ntuple')
 # parser.add_argument('--RunFolder', '-rf', action='store', type=str, default="", help='Destination to the folder containing run folders')
+parser.add_argument('--output', '-o', action='store', type=str, default="./", help="Path to store output png files")
 
 args = parser.parse_args()
 rn = args.runNumber
@@ -28,6 +29,13 @@ if not args.inputData.endswith("/") :
     inputDataPath = args.inputData + "/"
 else :
     inputDataPath = args.inputData
+
+if not args.output.endswith("/") :
+    outDir = args.output + f"valid_plots_Run_{rn}/"
+else :
+    outDir = args.output + f"/valid_plots_Run_{rn}/"
+if not os.path.exists(outDir) : 
+    os.makedirs(outDir)
 
 fastDataFileNumbers = []
 for mid in range(1,16):
@@ -58,8 +66,7 @@ fastNtuples.sort(key = natural_keys)
 
 # 2 ways of getting CID (channel ID)
 # 1. Using TBcid constructor >> No need to load mapping file, but need to know which MID & channel does module belongs to 
-cid_M2T6S = pydrcTB.TBcid(2, 2)
-cid_M2T6C = pydrcTB.TBcid(2, 10)
+#    Ex) cid_M2T6S = pydrcTB.TBcid(2, 2), cid_M2T6C = pydrcTB.TBcid(2, 10)
 
 # Enum detid list :
 # nulldet      = -1
@@ -84,49 +91,65 @@ cid_M2T6C = pydrcTB.TBcid(2, 10)
 #    getcid( int module, int tower, bool isCeren) or getcid(int detid, int module, int tower, bool isCeren)
 #    can use both function, and for "int detid", enter int corresponding to enum
 #    Also, before using getcid, one must load mapping information using loading function
+#    Lastly, this method cannot be used for SiPM
+#    Ex) cid_M2T6S = TButils.getcid(2, 6, 0) or use TButils.getcid(TButils.detid(1), 2, 6, 0)
+
+# cid_M1T1S = TButils.getcid(1, 1, 0)
+# cid_M1T2S = TButils.getcid(1, 2, 0)
+# cid_M1T3S = TButils.getcid(1, 3, 0)
+# cid_M1T4S = TButils.getcid(1, 4, 0)
+
+# cid_M1T1C = TButils.getcid(1, 1, 1)
+# cid_M1T2C = TButils.getcid(1, 2, 1)
+# cid_M1T3C = TButils.getcid(1, 3, 1)
+# cid_M1T4C = TButils.getcid(1, 4, 1)
+
+# cid_M2T1S = TButils.getcid(2, 1, 0)
+# cid_M2T2S = TButils.getcid(2, 2, 0)
+# cid_M2T3S = TButils.getcid(2, 3, 0)
+# cid_M2T4S = TButils.getcid(2, 4, 0)
+# cid_M2T6S = TButils.getcid(2, 6, 0)
+# cid_M2T7S = TButils.getcid(2, 7, 0)
+# cid_M2T8S = TButils.getcid(2, 8, 0)
+# cid_M2T9S = TButils.getcid(2, 9, 0)
+
+# cid_M2T1C = TButils.getcid(2, 1, 1)
+# cid_M2T2C = TButils.getcid(2, 2, 1)
+# cid_M2T3C = TButils.getcid(2, 3, 1)
+# cid_M2T4C = TButils.getcid(2, 4, 1)
+# cid_M2T6C = TButils.getcid(2, 6, 1)
+# cid_M2T7C = TButils.getcid(2, 7, 1)
+# cid_M2T8C = TButils.getcid(2, 8, 1)
+# cid_M2T9C = TButils.getcid(2, 9, 1)
+
+# One can validate MID 13 ch 31 (single channel) fastmode like this :
+# TButils = pydrcTB.TButility()
+# TButils.loading("mapping_data_MCPPMT_positiveSignal_v3.csv")
+# cid_sipm = pydrcTB.TBcid(13, 31)
+# validator = pydrcTB.TBvalid()
+# validator.setDataList(fastDataFiles)
+# validator.setNtupleList(fastNtuples)
+# Data_hist = validator.drawFastHistFromData(cid_sipm, "h_Data_Mid13Ch31", False)
+# Ntup_hist = validator.drawFastHistFromNtuple(cid_sipm, "h_Ntuple_Mid13Ch31", False)
+# validator.drawRatio(Data_hist, Ntup_hist, "h_Ratio_Mid13Ch31", outDir)
+# validator.checkTrigNum()
+
+# For validating whole single run, do this :
 TButils = pydrcTB.TButility()
 TButils.loading("mapping_data_MCPPMT_positiveSignal_v3.csv")
-# cid_with_util_M2T6S = TButils.getcid(TButils.detid(1), 2, 6, 0)
-cid_with_util_M2T6S = TButils.getcid(2, 6, 0)
-
-cid_with_util_M2T6S.print()
-
-# cid_M1T1C
-# cid_M1T2C
-# cid_M1T3C
-# cid_M1T4C
-
-# cid_M2T1C
-# cid_M2T2C
-# cid_M2T3C
-# cid_M2T4C
-# cid_M2T6C
-# cid_M2T7C
-# cid_M2T8C
-# cid_M2T9C
-
-# validator = pydrcTB.TBvalid()
-# Data_hist = validator.drawFastHistFromData(fastDataFiles, cid_M2T6C, "h_Data_M2T6_C", False)
-# Ntup_hist = validator.drawFastHistFromNtuple(fastNtuples, cid_M2T6C, "h_Ntuple_M2T6_C", False)
-# validator.drawRatio(Data_hist, Ntup_hist, "h_Ratio_M2T6_C_test")
-# validator.checkTrigNum(fastNtuples)
-
-cid_sipm = pydrcTB.TBcid(13, 31)
-
 validator = pydrcTB.TBvalid()
-
 validator.setDataList(fastDataFiles)
 validator.setNtupleList(fastNtuples)
-
-Data_hist = validator.drawFastHistFromData(cid_sipm, "h_Data_M2T5_Mid13Ch31_C", False)
-Ntup_hist = validator.drawFastHistFromNtuple(cid_sipm, "h_Ntuple_M2T5_Mid13Ch31_C", False)
-
-validator.drawRatio(Data_hist, Ntup_hist, "h_Ratio_M2T5_Mid13Ch31_C_test")
 validator.checkTrigNum()
-
-# for MID in range(1,16) :
-#     for ch in range(1, 33) : 
-#         cid = pydrcTB.TBcid(MID, ch)
-#         det = TButils.find(cid)
-#         if not ( det.isSiPM() or det.isModule() ) :
-#             print("MID : " + str(MID) + ", ch : " + str(ch) + " is enum : " + str(det.detType()))
+for MID in range(1,16) :
+    for ch in range(1, 33) :
+        print(f"Validating MID : {MID} Ch : {ch}")
+        cid = pydrcTB.TBcid(MID, ch)
+        det = TButils.find(cid)
+        Data_hist_name = f"h_Data_MID{MID}Ch{ch}"
+        Ntuples_hist_name = f"h_Ntuple_MID{MID}Ch{ch}"
+        Ratio_hist_name = f"h_Ratio_MID{MID}Ch{ch}"
+        if not ( det.isNull() ) :
+            Data_hist = validator.drawFastHistFromData(cid, Data_hist_name, False)
+            Ntup_hist = validator.drawFastHistFromNtuple(cid, Ntuples_hist_name, False)
+            validator.drawRatio(Data_hist, Ntup_hist, Ratio_hist_name, outDir)

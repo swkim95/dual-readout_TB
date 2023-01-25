@@ -11,7 +11,7 @@
 #include "TFile.h"
 #include "TTree.h"
 
-void TBvalid::drawRatio(TH1F* num, TH1F* den, const std::string histName) {
+void TBvalid::drawRatio(TH1F* num, TH1F* den, const std::string histName, const std::string outDir) {
     TH1F* h_fromNtuple = num;
     TH1F* h_fromData = den;
     TH1F* h_copy = (TH1F*)num->Clone("h_copy");
@@ -110,7 +110,7 @@ void TBvalid::drawRatio(TH1F* num, TH1F* den, const std::string histName) {
 
     if (drawRatio) {
         c1->Draw();
-        c1->SaveAs(("./" + histName + ".png").c_str());
+        c1->SaveAs(( outDir + histName + ".png").c_str());
     }
     else {
         std::cout << "All bins are fine, good to proceed..." << std::endl;
@@ -205,7 +205,7 @@ TH1F* TBvalid::drawFastHistFromData(const std::vector<std::vector<std::string>>&
     TCanvas* c = new TCanvas("","");
     c->cd();
     hist->Draw("Hist");
-    c->SaveAs(("./" + histName + ".png").c_str());
+    // c->SaveAs(("./" + histName + ".png").c_str());
 
     return hist;
 }
@@ -261,7 +261,7 @@ TH1F* TBvalid::drawFastHistFromNtuple(const std::vector<std::string>& ntupleList
     TCanvas* c = new TCanvas("","");
     c->cd();
     hist->Draw("Hist");
-    c->SaveAs(("./" + histName + ".png").c_str());
+    // c->SaveAs(("./" + histName + ".png").c_str());
 
     return hist;
 }
