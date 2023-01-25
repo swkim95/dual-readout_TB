@@ -18,50 +18,54 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--runNumber', '-rn', action='store', type=int, required=True, help="Run number")
 parser.add_argument('--inputNtuple', '-in', action='store', type=str, help="Path to input ntuples")
 parser.add_argument('--inputData', '-id', action='store', type=str, help="Path to input data files")
-# parser.add_argument('--doFast', '-f', action='store_true', default=False, help='If true, make fast mode ntuple')
+parser.add_argument('--doFast', '-f', action='store_true', default=False, help='If true, validate in fastmode. Else, validate in waveform mode')
 # parser.add_argument('--RunFolder', '-rf', action='store', type=str, default="", help='Destination to the folder containing run folders')
 parser.add_argument('--output', '-o', action='store', type=str, default="./", help="Path to store output png files")
 
 args = parser.parse_args()
 rn = args.runNumber
+mode = "Wave" if not args.doFast else "Fast"
+print(f"Validating in {mode} mode with run number {rn}...")
 
 if not args.inputData.endswith("/") :
     inputDataPath = args.inputData + "/"
 else :
     inputDataPath = args.inputData
 
-if not args.output.endswith("/") :
-    outDir = args.output + f"valid_plots_Run_{rn}/"
-else :
-    outDir = args.output + f"/valid_plots_Run_{rn}/"
-if not os.path.exists(outDir) : 
-    os.makedirs(outDir)
-
-fastDataFileNumbers = []
+DataFileNumbers = []
 for mid in range(1,16):
-    FastDat= inputDataPath + f"Run_{rn}/Run_{rn}_Fast/Run_{rn}_Fast_MID_{mid}/"
-    fastDataFileNumbers.append( len(glob(FastDat + "*.dat")) )
-    maxDataFastFileNum = min(fastDataFileNumbers) # just in case if MIDs have different # of fast .dat files... which should not happen
-fastDataFiles=[]
-for fn in range(maxDataFastFileNum) :
-    FastDataFilesPerFN = []
+    FullDataPath = inputDataPath + f"Run_{rn}/Run_{rn}_{mode}/Run_{rn}_{mode}_MID_{mid}/"
+    DataFileNumbers.append( len(glob(FullDataPath + "*.dat")) )
+    maxDataFileNum = min(DataFileNumbers) # just in case if MIDs have different # of fast .dat files... which should not happen
+DataFiles=[]
+for fn in range(maxDataFileNum) :
+    DataFilesPerFN = []
     for mid in range(1,16) :
-        fileName= inputDataPath + f"Run_{rn}/Run_{rn}_Fast/Run_{rn}_Fast_MID_{mid}/Run_{rn}_Fast_MID_{mid}_FILE_{fn}.dat"
+        fileName= inputDataPath + f"Run_{rn}/Run_{rn}_{mode}/Run_{rn}_{mode}_MID_{mid}/Run_{rn}_{mode}_MID_{mid}_FILE_{fn}.dat"
         if(os.path.isfile(fileName)) :
-            FastDataFilesPerFN.append(fileName)
+            DataFilesPerFN.append(fileName)
         else:
             print(fileName,"not found")
-    fastDataFiles.append(FastDataFilesPerFN)
+    DataFiles.append(DataFilesPerFN)
+
 
 if not args.inputNtuple.endswith("/") :
     inputNtuplePath = args.inputNtuple + "/"
 else :
     inputNtuplePath = args.inputNtuple
 
-fastNtuples = []
-for fn in glob(inputNtuplePath + "ntuple_*_Fast_*.root") :
-    fastNtuples.append(fn)
-fastNtuples.sort(key = natural_keys)
+Ntuples = []
+for fn in glob(inputNtuplePath + f"ntuple_Run_{rn}_{mode}_*.root") :
+    Ntuples.append(fn)
+Ntuples.sort(key = natural_keys)
+
+
+if not args.output.endswith("/") :
+    outDir = args.output + f"valid_plots_Run_{rn}_{mode}/"
+else :
+    outDir = args.output + f"/valid_plots_Run_{rn}_{mode}/"
+if not os.path.exists(outDir) : 
+    os.makedirs(outDir)
 
 
 # 2 ways of getting CID (channel ID)
@@ -127,8 +131,8 @@ fastNtuples.sort(key = natural_keys)
 # TButils.loading("mapping_data_MCPPMT_positiveSignal_v3.csv")
 # cid_sipm = pydrcTB.TBcid(13, 31)
 # validator = pydrcTB.TBvalid()
-# validator.setDataList(fastDataFiles)
-# validator.setNtupleList(fastNtuples)
+# validator.setDataList(DataFiles)
+# validator.setNtupleList(Ntuples)
 # Data_hist = validator.drawFastHistFromData(cid_sipm, "h_Data_Mid13Ch31", False)
 # Ntup_hist = validator.drawFastHistFromNtuple(cid_sipm, "h_Ntuple_Mid13Ch31", False)
 # validator.drawRatio(Data_hist, Ntup_hist, "h_Ratio_Mid13Ch31", outDir)
@@ -138,11 +142,11 @@ fastNtuples.sort(key = natural_keys)
 TButils = pydrcTB.TButility()
 TButils.loading("mapping_data_MCPPMT_positiveSignal_v3.csv")
 validator = pydrcTB.TBvalid()
-validator.setDataList(fastDataFiles)
-validator.setNtupleList(fastNtuples)
+validator.setDataList(DataFiles)
+validator.setNtupleList(Ntuples)
 validator.checkTrigNum()
-for MID in range(1,16) :
-    for ch in range(1, 33) :
+for MID in range(1,2) :
+    for ch in range(1, 2) :
         print(f"Validating MID : {MID} Ch : {ch}")
         cid = pydrcTB.TBcid(MID, ch)
         det = TButils.find(cid)
@@ -150,6 +154,11 @@ for MID in range(1,16) :
         Ntuples_hist_name = f"h_Ntuple_MID{MID}Ch{ch}"
         Ratio_hist_name = f"h_Ratio_MID{MID}Ch{ch}"
         if not ( det.isNull() ) :
-            Data_hist = validator.drawFastHistFromData(cid, Data_hist_name, False)
-            Ntup_hist = validator.drawFastHistFromNtuple(cid, Ntuples_hist_name, False)
-            validator.drawRatio(Data_hist, Ntup_hist, Ratio_hist_name, outDir)
+            if args.doFast :
+                Data_hist = validator.drawFastHistFromData(cid, Data_hist_name, False)
+                Ntup_hist = validator.drawFastHistFromNtuple(cid, Ntuples_hist_name, False)
+                validator.drawRatio(Data_hist, Ntup_hist, Ratio_hist_name, outDir)
+            # else :
+            #     Data_hist = validator.drawWaveHistFromData(cid, Data_hist_name, False)
+            #     Ntup_hist = validator.drawWaveHistFromNtuple(cid, Ntuples_hist_name, False)                
+            #     validator.drawRatio(Data_hist, Ntup_hist, Ratio_hist_name, outDir)
