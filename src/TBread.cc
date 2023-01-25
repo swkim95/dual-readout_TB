@@ -448,7 +448,9 @@ void TBread::ntuplizeFastmode(const boost::python::list& alist, const std::strin
     // Use MID 1 as reference MID
     TBmid<TBfastmode> RefMID = readFastmode(files[0]);
     MIDs.emplace_back(RefMID);
-    anEvtData.setTCB(RefMID.evt());
+    anEvtData.setTCB(RefMID.evt()); // TODO : Check this!
+    // anEvtData.setTCB(RefMID.tcb_trig_number()); // TODO : Check this!!
+
     // Loop over MID 2 ~ 15 & fill MIDs vector
     for (unsigned MID = 1; MID < numOfMID; MID++) {
       TBmid<TBfastmode> aMID = readFastmode(files[MID]);
@@ -482,17 +484,16 @@ void TBread::ntuplizeFastmode(const boost::python::list& alist, const std::strin
       outputRootFile->cd();
       rootTree->Write();
       outputRootFile->Close();
-      delete outputRootFile;
+      // delete outputRootFile;
 
       rootTree->Reset();
+      // delete rootTree;
+      // auto rootTree = new TTree("events","fastmode events");
+      // auto anEvtData = TBevt<TBfastmode>();
+      // rootTree->Branch("TBevt",&anEvtData);
       rootTree->SetAutoSave(0);
     }
   }
-  
-  for (unsigned MID = 0; MID < numOfMID; MID++) {
-    fclose(files[MID]);
-  }
-  
 
   // wite Ntuple if there exists some leftover events
   if (rootTree->GetEntries() != 0) {
@@ -505,5 +506,9 @@ void TBread::ntuplizeFastmode(const boost::python::list& alist, const std::strin
     outputRootFile->Close();
     delete rootTree;
     delete outputRootFile;
+  }
+
+  for (unsigned MID = 0; MID < numOfMID; MID++) {
+    fclose(files[MID]);
   }
 }
