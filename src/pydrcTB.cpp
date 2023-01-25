@@ -25,6 +25,8 @@ BOOST_PYTHON_MODULE(pydrcTB) {
     .def("drawRatio", &TBvalid::drawRatio)
     .def("drawFastHistFromData", static_cast<TH1F* (TBvalid::*)(TBcid cid, const std::string histName, bool drawTiming)>(&TBvalid::drawFastHistFromData), boost::python::return_internal_reference<>())
     .def("drawFastHistFromNtuple", static_cast<TH1F* (TBvalid::*)(TBcid cid, const std::string histName, bool drawTiming)>(&TBvalid::drawFastHistFromNtuple), boost::python::return_internal_reference<>())
+    .def("drawWaveHistFromData", static_cast<TH1F* (TBvalid::*)(TBcid cid, const std::string histName)>(&TBvalid::drawWaveHistFromData), boost::python::return_internal_reference<>())
+    .def("drawWaveHistFromNtuple", static_cast<TH1F* (TBvalid::*)(TBcid cid, const std::string histName)>(&TBvalid::drawWaveHistFromNtuple), boost::python::return_internal_reference<>())
     .def("checkTrigNum", &TBvalid::checkTrigNum)
     .def("setDataList", &TBvalid::setDataList)
     .def("setNtupleList", &TBvalid::setNtupleList);

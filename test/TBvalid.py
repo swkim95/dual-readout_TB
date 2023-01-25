@@ -19,7 +19,6 @@ parser.add_argument('--runNumber', '-rn', action='store', type=int, required=Tru
 parser.add_argument('--inputNtuple', '-in', action='store', type=str, help="Path to input ntuples")
 parser.add_argument('--inputData', '-id', action='store', type=str, help="Path to input data files")
 parser.add_argument('--doFast', '-f', action='store_true', default=False, help='If true, validate in fastmode. Else, validate in waveform mode')
-# parser.add_argument('--RunFolder', '-rf', action='store', type=str, default="", help='Destination to the folder containing run folders')
 parser.add_argument('--output', '-o', action='store', type=str, default="./", help="Path to store output png files")
 
 args = parser.parse_args()
@@ -61,9 +60,9 @@ Ntuples.sort(key = natural_keys)
 
 
 if not args.output.endswith("/") :
-    outDir = args.output + f"valid_plots_Run_{rn}_{mode}/"
+    outDir = args.output + f"valid_plots_Run_{rn}/{mode}/"
 else :
-    outDir = args.output + f"/valid_plots_Run_{rn}_{mode}/"
+    outDir = args.output + f"/valid_plots_Run_{rn}/{mode}/"
 if not os.path.exists(outDir) : 
     os.makedirs(outDir)
 
@@ -144,9 +143,9 @@ TButils.loading("mapping_data_MCPPMT_positiveSignal_v3.csv")
 validator = pydrcTB.TBvalid()
 validator.setDataList(DataFiles)
 validator.setNtupleList(Ntuples)
-validator.checkTrigNum()
-for MID in range(1,2) :
-    for ch in range(1, 2) :
+validator.checkTrigNum(args.doFast)
+for MID in range(1, 16) :
+    for ch in range(1, 33) :
         print(f"Validating MID : {MID} Ch : {ch}")
         cid = pydrcTB.TBcid(MID, ch)
         det = TButils.find(cid)
@@ -158,7 +157,7 @@ for MID in range(1,2) :
                 Data_hist = validator.drawFastHistFromData(cid, Data_hist_name, False)
                 Ntup_hist = validator.drawFastHistFromNtuple(cid, Ntuples_hist_name, False)
                 validator.drawRatio(Data_hist, Ntup_hist, Ratio_hist_name, outDir)
-            # else :
-            #     Data_hist = validator.drawWaveHistFromData(cid, Data_hist_name, False)
-            #     Ntup_hist = validator.drawWaveHistFromNtuple(cid, Ntuples_hist_name, False)                
-            #     validator.drawRatio(Data_hist, Ntup_hist, Ratio_hist_name, outDir)
+            else :
+                Data_hist = validator.drawWaveHistFromData(cid, Data_hist_name)
+                Ntup_hist = validator.drawWaveHistFromNtuple(cid, Ntuples_hist_name)                
+                validator.drawRatio(Data_hist, Ntup_hist, Ratio_hist_name, outDir)
