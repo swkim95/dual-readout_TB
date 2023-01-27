@@ -26,7 +26,7 @@ public:
 	~TBload();
 
 	void loading();
-	int currenLoader() { return currentEntry; }
+	int currentEntry() { return currentEntry_; }
 	int getEntries() { return entries; }
 	TBevt<T>* getEvent() { return aEvent; }
 
@@ -41,7 +41,7 @@ private:
 	int runNum;
 
 	int entries;
-	int currentEntry;
+	int currentEntry_;
 
 	TChain* aChain;
 	TBevt<T>* aEvent;

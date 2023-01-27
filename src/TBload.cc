@@ -14,10 +14,12 @@ void TBload<T>::init() {
   TString baseDir = "";
 
   if ( getType(aEvent) == datamode::kWaveform ) {
-    baseDir = "/pnfs/knu.ac.kr/data/cms/store/user/sungwon/2022_DRC_TB_ntuple/waveform/Run_" + std::to_string(runNum) + "/ntuple_Run_" + std::to_string(runNum) + "_Wave_";
+    // baseDir = "/pnfs/knu.ac.kr/data/cms/store/user/sungwon/2022_DRC_TB_ntuple/waveform/Run_" + std::to_string(runNum) + "/ntuple_Run_" + std::to_string(runNum) + "_Wave_";
+    baseDir = "dcap://cluster142.knu.ac.kr//pnfs/knu.ac.kr/data/cms/store/user/sungwon/2022_DRC_TB_ntuple/waveform/Run_" + std::to_string(runNum) + "/ntuple_Run_" + std::to_string(runNum) + "_Wave_";
     std::cout << "Loading waveform data for Run : " << runNum << std::endl;
   } else {
-    baseDir = "/pnfs/knu.ac.kr/data/cms/store/user/sungwon/2022_DRC_TB_ntuple/fastmode/Run_" + std::to_string(runNum) + "/ntuple_Run_" + std::to_string(runNum) + "_Fast_";
+    // baseDir = "/pnfs/knu.ac.kr/data/cms/store/user/sungwon/2022_DRC_TB_ntuple/fastmode/Run_" + std::to_string(runNum) + "/ntuple_Run_" + std::to_string(runNum) + "_Fast_";
+    baseDir = "dcap://cluster142.knu.ac.kr//pnfs/knu.ac.kr/data/cms/store/user/sungwon/2022_DRC_TB_ntuple/fastmode/Run_" + std::to_string(runNum) + "/ntuple_Run_" + std::to_string(runNum) + "_Fast_";
     std::cout << "Loading fastmode data for Run : " << runNum << std::endl;
   }
 
@@ -36,13 +38,13 @@ void TBload<T>::init() {
 
   aChain->SetBranchAddress("TBevt",&aEvent);
   entries = aChain->GetEntries();
-  currentEntry = 0;
+  currentEntry_ = 0;
 }
 
 template<typename T>
 void TBload<T>::loading() {
-  aChain->GetEntry(currentEntry);
-  currentEntry++;
+  aChain->GetEntry(currentEntry_);
+  currentEntry_++;
 }
 
 template<typename T>
