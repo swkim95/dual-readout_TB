@@ -20,6 +20,7 @@ public:
   std::string pedestalpath() const { return pedestalpath_; }
   void setPedestalPath(const std::string& path) { pedestalpath_ = path; }
 
+  FILE* py_readFile(char* filename);
   TBmid<TBwaveform> readWaveform(FILE* fp);
   TBmid<TBfastmode> readFastmode(FILE* fp);
 private:
