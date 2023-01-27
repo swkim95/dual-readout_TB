@@ -3,6 +3,7 @@
 #include "TBevt.h"
 
 #include <stdexcept>
+#include <boost/python.hpp>
 
 #include "TFile.h"
 #include "TTree.h"
@@ -20,6 +21,11 @@ void TBread::printProgress(const int currentStep, const int totalStep) {
   }
   std::cout << "]  " << currentStep << "/" << totalStep << "  " << int(progress * 100.0) << "%\r";
   std::cout.flush();
+}
+
+FILE* TBread::py_readFile(char* filename) {
+  FILE* fp = fopen(filename, "rb");
+  return fp;
 }
 
 TBmidbase TBread::readMetadata(FILE* fp) {

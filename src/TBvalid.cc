@@ -196,7 +196,7 @@ TH1F* TBvalid::drawWaveHistFromData(const std::vector<std::vector<std::string>>&
     TCanvas* c = new TCanvas("","");
     c->cd();
     hist->Draw("Hist");
-    c->SaveAs(("./" + histName + ".png").c_str());
+    // c->SaveAs(("./" + histName + ".png").c_str());
 
     return hist;
 }
@@ -333,7 +333,7 @@ TH1F* TBvalid::drawWaveHistFromNtuple(const std::vector<std::string>& ntupleList
     TCanvas* c = new TCanvas("","");
     c->cd();
     hist->Draw("Hist");
-    c->SaveAs(("./" + histName + ".png").c_str());
+    // c->SaveAs(("./" + histName + ".png").c_str());
 
     return hist;
 }
@@ -447,8 +447,8 @@ void TBvalid::checkTrigNum(bool doFast) {
                 std::cout << "[ERROR] : Previous tcb trig number : " << prev_tcb_trig_number[MID] << std::endl;
                 std::cout << "[ERROR] : Current tcb trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
             }
-            // Should be previous tcb # + 1 == current tcb # (if not, missing some events)
-            if ( (iEvt != 0) && ((prev_tcb_trig_number[MID] + 1) != MIDs[MID].tcb_trig_number()) ) {
+            // Should be previous tcb # + 1 == current tcb # for fastmode (if not, missing some events)
+            if ( doFast && (iEvt != 0) && ((prev_tcb_trig_number[MID] + 1) != MIDs[MID].tcb_trig_number()) ) {
                 war_count++;
                 std::cout << std::endl;
                 std::cout << "[Warning] : Missing TCB trig number found in MID : " << MID+1 << " in event # : " << iEvt << std::endl;
