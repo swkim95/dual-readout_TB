@@ -55,10 +55,11 @@ float getLinearInterpolate(float thres, float i, float j, float fi, float fj) {
 float getLeadingEdge(std::vector<float> waveform) {
 
   float LedingThres = (float)*std::max_element(waveform.begin()+1, waveform.end()-23) * 0.1;
+  int LedingInx = std::max_element(waveform.begin()+1, waveform.end()-23) - waveform.begin();
   
-  for ( int i = 1; i <= 1000; i++ )
-    if ( waveform.at(i) > LedingThres )
-      return getTime(getLinearInterpolate(LedingThres, i-1, i, waveform.at(i-1), waveform.at(i)));
+  for ( int i = LedingInx; i > 0; i-- )
+    if ( waveform.at(i) < LedingThres )
+      return getTime(getLinearInterpolate(LedingThres, i, i+1, waveform.at(i), waveform.at(i+1)));
 
   return 0;
 }
@@ -71,6 +72,10 @@ std::vector<float> getPosition(std::vector<TBwaveform> dwcSet, float xCoeff, flo
 
   return time;
 
+}
+
+float getDWCtimeWave(TBwaveform wave, float ped) {
+  return getLeadingEdge(wave.pedcorrectedWaveform(ped));
 }
 
 static float dwc1horizontalSlope = -0.1740806676;
@@ -154,6 +159,23 @@ bool muCut(double MU) {
     return true;
 
   return false;
+}
+
+std::vector<short> getPeakRegion(std::vector<short> wave) {
+  int peakIdx = std::min_element(wave.begin()+10, wave.end()-50) - wave.begin();
+  
+  std::vector<short> wave_refine;
+  for ( int i = peakIdx - 60; i < peakIdx - 60 + 150; i++ )
+    wave_refine.push_back(wave.at(i));
+
+  return wave_refine;
+}
+
+float getDWCtimeWavePeak(std::vector<short> wave) {
+
+  int peakidx = std::min_element(wave.begin()+10, wave.end()-23) - wave.begin();
+
+  return getTime((float)peakidx);
 }
 
 
