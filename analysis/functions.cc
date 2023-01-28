@@ -88,10 +88,15 @@ static float dwc2horizontalOffset = -0.579927452;
 static float dwc2VerticalSlope = -0.1741203164;
 static float dwc2VerticalOffset = -0.278179655;
 
-static float dwc1Xoffset = 2.46;
-static float dwc1Yoffset = -3.191;
-static float dwc2Xoffset = 4.144;
-static float dwc2Yoffset = -10.54;
+// static float dwc1Xoffset = 2.46;
+// static float dwc1Yoffset = -3.191;
+// static float dwc2Xoffset = 4.144;
+// static float dwc2Yoffset = -10.54;
+
+static float dwc1Xoffset = 0.;
+static float dwc1Yoffset = 0.;
+static float dwc2Xoffset = 0.;
+static float dwc2Yoffset = 0.;
 
 std::vector<float> getDWCposition(std::vector<int> dwcTime) {
 
