@@ -43,7 +43,8 @@ class TBvalid {
         TH1F* drawWaveHistFromNtuple(TBcid cid, const std::string histName);
         TH1F* drawWaveHistFromNtuple(const std::vector<std::string>& ntupleList, TBcid cid, const std::string histName);
         
-        void checkTrigNum(bool doFast);
+        void checkFastTrigNum();
+        void checkWaveTrigNum();
         
         std::vector<std::vector<std::string>> readDataList(const boost::python::list& py_datList);
         std::vector<std::string> readNtupleList(const boost::python::list& py_ntupleList);

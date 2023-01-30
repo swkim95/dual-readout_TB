@@ -394,7 +394,7 @@ TH1F* TBvalid::drawFastHistFromNtuple(const std::vector<std::string>& ntupleList
     return hist;
 }
 
-void TBvalid::checkTrigNum(bool doFast) {
+void TBvalid::checkFastTrigNum() {
     std::cout << "Checking trigger numbers..." << std::endl;
     const int numOfMID = 15;
 
@@ -411,8 +411,7 @@ void TBvalid::checkTrigNum(bool doFast) {
 
     std::vector<int> prev_tcb_trig_number(numOfMID);
     
-    TBevt<TBwaveform>* anEvtFromNtuple = new TBevt<TBwaveform>();
-    if (doFast) TBevt<TBfastmode>* anEvtFromNtuple = new TBevt<TBfastmode>();
+    TBevt<TBfastmode>* anEvtFromNtuple = new TBevt<TBfastmode>();
 
     fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
     // Start event loop
@@ -448,13 +447,93 @@ void TBvalid::checkTrigNum(bool doFast) {
                 std::cout << "[ERROR] : Current tcb trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
             }
             // Should be previous tcb # + 1 == current tcb # for fastmode (if not, missing some events)
-            if ( doFast && (iEvt != 0) && ((prev_tcb_trig_number[MID] + 1) != MIDs[MID].tcb_trig_number()) ) {
+            if ( (iEvt != 0) && ((prev_tcb_trig_number[MID] + 1) != MIDs[MID].tcb_trig_number()) ) {
                 war_count++;
                 std::cout << std::endl;
                 std::cout << "[Warning] : Missing TCB trig number found in MID : " << MID+1 << " in event # : " << iEvt << std::endl;
                 std::cout << "[Warning] : Previous tcb trig number : " << prev_tcb_trig_number[MID] << std::endl;
                 std::cout << "[Warning] : Current tcb trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
             }
+            // Sould be tcb # = local # (if not, one of TCB or DAQ malfunction might happened)
+            if (MIDs[MID].tcb_trig_number() != MIDs[MID].local_trig_number()) {
+                err_count++;
+                std::cout << std::endl;
+                std::cout << "[ERROR] : Mismatch between local trig number and TCB trig number found in MID : " << MID+1 << " in event # : " << iEvt << std::endl;
+                std::cout << "[ERROR] : TCB trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
+                std::cout << "[ERROR] : DAQ trig number : " << MIDs[MID].local_trig_number() << std::endl;
+            }
+
+            prev_tcb_trig_number[MID] = MIDs[MID].tcb_trig_number();
+        }
+
+        printProgress(iEvt +1, totalEntry);
+    }
+            
+    if (! (err_count || war_count) ) {
+        std::cout << "No error or warning found, good to proceed" << std::endl;
+    }
+}
+
+void TBvalid::checkWaveTrigNum() {
+    std::cout << "Checking trigger numbers..." << std::endl;
+    const int numOfMID = 15;
+
+    auto ntupleList = this->ntupleList_;
+
+    const int numOfFiles = ntupleList.size();
+
+    TChain* fileChain = new TChain("events");
+    for (std::string fName : ntupleList) {
+        fileChain->Add(fName.c_str());
+    }
+    int totalEntry = fileChain->GetEntries();
+    std::cout << "Total entries : " << totalEntry << std::endl;
+
+    std::vector<int> prev_tcb_trig_number(numOfMID);
+    
+    TBevt<TBwaveform>* anEvtFromNtuple = new TBevt<TBwaveform>();
+
+    fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
+    // Start event loop
+    int err_count = 0;
+    int war_count = 0;
+    for (unsigned iEvt = 0; iEvt < totalEntry; ++iEvt) {
+        fileChain->GetEntry(iEvt);
+
+        std::vector<TBmid<TBfastmode>> MIDs(numOfMID);
+        for (unsigned MID = 0; MID < numOfMID; ++MID) {
+            MIDs[MID] = anEvtFromNtuple->mid(MID);
+        }
+
+        // Validation on TCB trig # begin
+        for (unsigned MID = 0; MID < numOfMID; ++MID) {
+
+            TBmid<TBfastmode> refMID = MIDs[0];
+
+            // Compare TCB trig # between all MIDs
+            if (refMID.tcb_trig_number() != MIDs[MID].tcb_trig_number()) {
+                err_count++;
+                std::cout << std::endl;
+                std::cout << "[ERROR] : TCB trig number mismatch between MID 1 and MID : " << MID+1  << " in event # : " << iEvt << std::endl;
+                std::cout << "[ERROR] : trig # of MID 1 : " << refMID.tcb_trig_number() << std::endl;
+                std::cout << "[ERROR] : trig # of MID " << MID+1 << " : " << MIDs[MID].tcb_trig_number() << std::endl;
+            }
+            // Should be previous tcb # < current tcb # (if not, evt order mixed!)
+            if ( (iEvt != 0) && (prev_tcb_trig_number[MID] >= MIDs[MID].tcb_trig_number()) ) {
+                err_count++;
+                std::cout << std::endl;
+                std::cout << "[ERROR] : Mixed order in TCB trig number found for MID : " << MID+1 << " in event # : " << iEvt << std::endl;
+                std::cout << "[ERROR] : Previous tcb trig number : " << prev_tcb_trig_number[MID] << std::endl;
+                std::cout << "[ERROR] : Current tcb trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
+            }
+            // Should be previous tcb # + 1 == current tcb # for fastmode (if not, missing some events)
+            // if ( (iEvt != 0) && ((prev_tcb_trig_number[MID] + 1) != MIDs[MID].tcb_trig_number()) ) {
+            //     war_count++;
+            //     std::cout << std::endl;
+            //     std::cout << "[Warning] : Missing TCB trig number found in MID : " << MID+1 << " in event # : " << iEvt << std::endl;
+            //     std::cout << "[Warning] : Previous tcb trig number : " << prev_tcb_trig_number[MID] << std::endl;
+            //     std::cout << "[Warning] : Current tcb trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
+            // }
             // Sould be tcb # = local # (if not, one of TCB or DAQ malfunction might happened)
             if (MIDs[MID].tcb_trig_number() != MIDs[MID].local_trig_number()) {
                 err_count++;
