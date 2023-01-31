@@ -23,6 +23,8 @@ BOOST_PYTHON_MODULE(pydrcTB) {
 
     // or also using static cast, like this 
     .def("ntuplizeFastmode", static_cast<void (TBread::*)(const boost::python::list& alist, const std::string& output)>(&TBread::ntuplizeFastmode))
+    // for const functions >> add const behind like this >> .def("func_name", static_cast<ReturnType (Class::*)(arguments) const>(&Class::function))
+    // EX) .def("getcid", static_cast<TBcid (TButility::*)(TBdetector::detid did) const>(&TButility::getcid))
     .def("ntuplizeFastmode", static_cast<void (TBread::*)(const boost::python::list& alist, const std::string& output, const int maxEntry, const int entryPerSplit)>(&TBread::ntuplizeFastmode))
     .def("setMappingPath", &TBread::setMappingPath)
     .def("setPedestalPath", &TBread::setPedestalPath);
