@@ -30,3 +30,16 @@
 *.exe
 *.out
 *.app
+
+# Root files
+*.root
+*.dat
+
+# plots
+*.png
+*.pdf
+*.log
+
+# install & build forders
+install/
+build/
