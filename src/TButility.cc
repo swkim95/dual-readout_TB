@@ -171,7 +171,7 @@ TBcid TButility::getcid(TBdetector::detid did, int module, int tower, bool isCer
       && detInfo.second.tower() == tower
       && detInfo.second.isCeren() == isCeren )
       return detInfo.first;
-  
+
   return TBcid(0, 0);
 }
 
