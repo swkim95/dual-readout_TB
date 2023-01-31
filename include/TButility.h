@@ -8,6 +8,11 @@
 
 #include "TBdetector.h"
 
+#include <TChain.h>
+#include <TString.h>
+#include <TH2.h>
+#include <TFile.h>
+
 class TButility {
 public:
   TButility() {}

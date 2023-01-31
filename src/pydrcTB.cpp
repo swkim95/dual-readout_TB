@@ -59,7 +59,6 @@ BOOST_PYTHON_MODULE(pydrcTB) {
     .def("setPS1mipcut", &TButility::setPS1mipcut)
     .def("setPS3mipcut", &TButility::setPS3mipcut)
     .def("setMuoncut", &TButility::setMuoncut)
-    // .def("detid", &TButility::detid)
     .def("getcid", static_cast<TBcid (TButility::*)(TBdetector::detid did) const>(&TButility::getcid))
     .def("getcid", static_cast<TBcid (TButility::*)(TBdetector::detid did, int module, int tower, bool isCeren) const>(&TButility::getcid))
     .def("getcid", static_cast<TBcid (TButility::*)(int module, int tower, bool isCeren) const>(&TButility::getcid))
