@@ -34,9 +34,9 @@ for fn in range(maxFileNum) :
     DataFiles.append(FilesPerFN)
 
 if args.output.endswith("/") : 
-    outputPath = args.output + f"ntuple_{rn}/{mode}/"
+    outputPath = args.output + f"Run_{rn}/{mode}/"
 else :
-    outputPath = args.output + f"/ntuple_{rn}/{mode}/"
+    outputPath = args.output + f"/Run_{rn}/{mode}/"
 if not os.path.exists(outputPath) :
     os.makedirs(outputPath)
 output_name = outputPath + f"ntuple_Run_{rn}_{mode}"

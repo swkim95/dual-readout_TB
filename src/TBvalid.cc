@@ -96,7 +96,8 @@ void TBvalid::drawRatio(TH1F* num, TH1F* den, const std::string histName, const 
 
     // Part where checking bin contents and drawing ratio if bin contains non-1 values
     int nBins = h_copy->GetNbinsX();
-    bool drawRatio = false;
+    // bool drawRatio = false;
+    bool drawRatio = true;
     for (int bin = 0; bin < nBins; ++bin) {
         float copy_binValue = (float) h_copy->GetBinContent(bin);
         float num_binValue = (float) h_fromNtuple->GetBinContent(bin);
@@ -104,7 +105,6 @@ void TBvalid::drawRatio(TH1F* num, TH1F* den, const std::string histName, const 
         if ( copy_binValue != 1.0f && (num_binValue != 0.0f && den_binValue != 0.0f) ) {
             std::cout << "The bin value for bin " << bin << " is not 1, but " << copy_binValue << ", drawing Ratio plot..." << std::endl;
             drawRatio = true;
-
         }
     }
 
@@ -119,6 +119,34 @@ void TBvalid::drawRatio(TH1F* num, TH1F* den, const std::string histName, const 
     delete p1;
     delete p2;
     delete c1;
+}
+
+void TBvalid::checkRatio(TH1F* num, TH1F* den, const std::string histName, const std::string outDir) {
+    TH1F* h_fromNtuple = num;
+    TH1F* h_fromData = den;
+    TH1F* h_copy = (TH1F*)num->Clone("h_copy");
+
+    h_copy->Divide(h_fromData);
+
+    // Part where checking bin contents and drawing ratio if bin contains non-1 values
+    int nBins = h_copy->GetNbinsX();
+    bool drawRatio = false;
+    for (int bin = 0; bin < nBins; ++bin) {
+        float copy_binValue = (float) h_copy->GetBinContent(bin);
+        float num_binValue = (float) h_fromNtuple->GetBinContent(bin);
+        float den_binValue = (float) h_fromData->GetBinContent(bin);
+        if ( copy_binValue != 1.0f && (num_binValue != 0.0f && den_binValue != 0.0f) ) {
+            std::cout << "The bin value for bin " << bin << " is not 1, but " << copy_binValue << std::endl;
+            drawRatio = true;
+        }
+    }
+
+    if (drawRatio) {
+        std::cout << "[ERROR] Contents mismatch between data and ntuple" << std::endl;
+    }
+    else {
+        std::cout << "All bins are fine, good to proceed..." << std::endl;
+    }
 }
 
 TH1F* TBvalid::drawWaveHistFromData(TBcid cid, const std::string histName) {
@@ -290,6 +318,233 @@ TH1F* TBvalid::drawFastHistFromData(const std::vector<std::vector<std::string>>&
     return hist;
 }
 
+bool TBvalid::py_simpleValidFast(TBcid cid) {
+    if (this->datList_.size() == 0) {
+        std::cout << "No data list found, please use setDataList() first" << std::endl;
+        return false;
+    }
+    if (this->ntupleList_.size() == 0) {
+        std::cout << "No ntuple list found, please use setNtupleList() first" << std::endl;
+        return false;
+    }
+    bool valid = simpleValidFast(this->datList_, this->ntupleList_, cid);
+    return valid;
+}
+
+bool TBvalid::simpleValidFast(const std::vector<std::vector<std::string>>& datList, const std::vector<std::string>& ntupleList, TBcid cid) {
+    std::cout << "Quick fastmode validation..." << std::endl;
+    const int numOfMID = 15;
+    const int numOfFiles = datList.size();
+
+    // Counting total entries from data file
+    std::vector<int> entryPerMID(numOfMID);
+    std::vector< std::vector<int> > entryPerFile( numOfFiles, std::vector<int>(numOfMID) );
+    for (unsigned fileNum = 0; fileNum < numOfFiles; fileNum++) {
+        for (unsigned MID = 0; MID < numOfMID; MID++) {
+        FILE* fp = fopen(datList[fileNum][MID].c_str(), "rb");
+        fseek(fp, 0L, SEEK_END);
+        unsigned long long file_size = ftell(fp);
+        fclose(fp);
+        entryPerMID[MID] += (int)(file_size / 256);
+        entryPerFile[fileNum][MID] = (int)(file_size / 256);
+        }
+    }
+    int totalEntryfromData = *std::min_element(entryPerMID.begin(), entryPerMID.end());
+
+    // Set TChain, count total entries from ntuple
+    TChain* fileChain = new TChain("events");
+    for (std::string fName : ntupleList) {
+        fileChain->Add(fName.c_str());
+    }
+    int totalEntryfromNtuple = fileChain->GetEntries();
+
+    // Error if total entry is different
+    if (totalEntryfromData != totalEntryfromNtuple) {
+        std::cout << "[ERROR] Ntuple total entry : " << totalEntryfromNtuple << " != Data total entry : " << totalEntryfromData << std::endl;
+    }
+
+    std::cout << "Total Entry : " << totalEntryfromData << std::endl;
+
+    // Open data files and prepare reader
+    TBevt<TBfastmode>* anEvtFromData = new TBevt<TBfastmode>();
+    std::vector<int> currentOpenFileNum(numOfMID);
+    std::vector<int> entryCounted(numOfMID);
+    std::vector<FILE*> files(numOfMID);
+    for (unsigned MID = 0; MID < numOfMID; MID++) {
+        files[MID] = fopen(datList[0][MID].c_str(), "rb");
+    }
+    TBread reader = TBread();
+
+    // Opening & reading ntuple with TChain
+    TBevt<TBfastmode>* anEvtFromNtuple = new TBevt<TBfastmode>();
+    fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
+    
+    // For error count
+    int errorCount = 0;
+
+    // Start evt loop
+    for (unsigned iEvt = 0; iEvt < totalEntryfromData; iEvt++){
+        // Reading data
+        // if count[MID] exceeds # of entry of corresponding file, move to next file
+        for (unsigned MID = 0; MID < numOfMID; MID++) {
+            // currently opened file number for each MID
+            if ( entryPerFile[currentOpenFileNum[MID]][MID] == entryCounted[MID] ) {
+                fclose(files[MID]);
+                currentOpenFileNum[MID]++;
+                files[MID] = fopen(datList[currentOpenFileNum[MID]][MID].c_str(), "rb");
+                entryCounted[MID] = 0;
+            }
+        }
+        std::vector<TBmid<TBfastmode>> MIDs(numOfMID);
+        for (unsigned MID = 0; MID < numOfMID; MID++) {
+            MIDs[MID] = reader.readFastmode(files[MID]);
+        }
+        anEvtFromData->setTCB(MIDs[0].evt());
+        anEvtFromData->set(MIDs);
+        auto dataFromData = anEvtFromData->data(cid);
+        // Reading ntuple
+        fileChain->GetEntry(iEvt);
+        auto dataFromNtuple = anEvtFromNtuple->data(cid);
+
+        // Compare contents
+        if (dataFromData.adc() != dataFromNtuple.adc()) {
+            errorCount++;
+            std::cout << "[ERROR] ADC from data does not match with ntuple" << std::endl;
+            std::cout << "Evt : " << iEvt << " Data ADC : " << dataFromData.adc() << " Ntuple ADC : " << dataFromNtuple.adc() << std::endl;
+        }
+
+        printProgress( (iEvt + 1) , totalEntryfromData);
+    }
+
+    if (errorCount) {
+        std::cout << "[ERROR] Event content mismatch error in MID : " << cid.mid() << " Ch : " << cid.channel() << std::endl;
+        return false;
+    }
+    else {
+        std::cout << "[OK] Event content well matched in MID : " << cid.mid() << " Ch : " << cid.channel() << std::endl;
+        return true;
+    }
+}
+
+bool TBvalid::py_simpleValidWave(TBcid cid) {
+    if (this->datList_.size() == 0) {
+        std::cout << "No data list found, please use setDataList() first" << std::endl;
+        return false;
+    }
+    if (this->ntupleList_.size() == 0) {
+        std::cout << "No ntuple list found, please use setNtupleList() first" << std::endl;
+        return false;
+    }
+    bool valid = simpleValidWave(this->datList_, this->ntupleList_, cid);
+    return valid;
+}
+
+bool TBvalid::simpleValidWave(const std::vector<std::vector<std::string>>& datList,const std::vector<std::string>& ntupleList, TBcid cid) {
+    std::cout << "Quick waveform validation..." << std::endl;
+    const int numOfMID = 15;
+    const int numOfFiles = datList.size();
+
+    // Counting total entries from data file
+    std::vector<int> entryPerMID(numOfMID);
+    std::vector< std::vector<int> > entryPerFile( numOfFiles, std::vector<int>(numOfMID) );
+    for (unsigned fileNum = 0; fileNum < numOfFiles; fileNum++) {
+        for (unsigned MID = 0; MID < numOfMID; MID++) {
+        FILE* fp = fopen(datList[fileNum][MID].c_str(), "rb");
+        fseek(fp, 0L, SEEK_END);
+        unsigned long long file_size = ftell(fp);
+        fclose(fp);
+        entryPerMID[MID] += (int)(file_size / 65536);
+        entryPerFile[fileNum][MID] = (int)(file_size / 65536);
+        }
+    }
+    int totalEntryfromData = *std::min_element(entryPerMID.begin(), entryPerMID.end());
+
+    // Set TChain, count total entries from ntuple
+    TChain* fileChain = new TChain("events");
+    for (std::string fName : ntupleList) {
+        fileChain->Add(fName.c_str());
+    }
+    int totalEntryfromNtuple = fileChain->GetEntries();
+
+    // Error if total entry is different
+    if (totalEntryfromData != totalEntryfromNtuple) {
+        std::cout << "[ERROR] Ntuple total entry : " << totalEntryfromNtuple << " != Data total entry : " << totalEntryfromData << std::endl;
+    }
+
+    std::cout << "Total Entry : " << totalEntryfromData << std::endl;
+
+    // Open data files and prepare reader
+    TBevt<TBwaveform>* anEvtFromData = new TBevt<TBwaveform>();
+    std::vector<int> currentOpenFileNum(numOfMID);
+    std::vector<int> entryCounted(numOfMID);
+    std::vector<FILE*> files(numOfMID);
+    for (unsigned MID = 0; MID < numOfMID; MID++) {
+        files[MID] = fopen(datList[0][MID].c_str(), "rb");
+    }
+    TBread reader = TBread();
+
+    // Opening & reading ntuple with TChain
+    TBevt<TBwaveform>* anEvtFromNtuple = new TBevt<TBwaveform>();
+    fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
+    
+    // For error count
+    int errorCount = 0;
+
+    // Start evt loop
+    for (unsigned iEvt = 0; iEvt < totalEntryfromData; iEvt++){
+        // Reading data
+        // if count[MID] exceeds # of entry of corresponding file, move to next file
+        for (unsigned MID = 0; MID < numOfMID; MID++) {
+            // currently opened file number for each MID
+            if ( entryPerFile[currentOpenFileNum[MID]][MID] == entryCounted[MID] ) {
+                fclose(files[MID]);
+                currentOpenFileNum[MID]++;
+                files[MID] = fopen(datList[currentOpenFileNum[MID]][MID].c_str(), "rb");
+                entryCounted[MID] = 0;
+            }
+        }
+        std::vector<TBmid<TBwaveform>> MIDs(numOfMID);
+        for (unsigned MID = 0; MID < numOfMID; MID++) {
+            MIDs[MID] = reader.readWaveform(files[MID]);
+        }
+        anEvtFromData->setTCB(MIDs[0].evt());
+        anEvtFromData->set(MIDs);
+        auto dataFromData = anEvtFromData->data(cid);
+        // Reading ntuple
+        fileChain->GetEntry(iEvt);
+        auto dataFromNtuple = anEvtFromNtuple->data(cid);
+
+        std::vector<short> waveFromData = dataFromData.waveform();
+        waveFromData.pop_back();
+        std::vector<short> waveFromNtuple = dataFromNtuple.waveform();
+        waveFromNtuple.pop_back();
+        
+        // Compare contents
+        if ( waveFromData != waveFromNtuple ) {
+            errorCount++;
+            std::cout << "[ERROR] Waveform from data does not match with ntuple Evt : " << iEvt << std::endl;
+        }
+        // for (int i = 1; i < dataFromData.waveform().size() - 1; i++) {
+        //     if (dataFromData.waveform()[i] != dataFromNtuple.waveform()[i]) {
+        //         errorCount++;
+        //         std::cout << "[ERROR] Waveform from data does not match with ntuple Evt : " << iEvt << " bin : " << i << std::endl;
+        //         std::cout << "Data wave : " << dataFromData.waveform()[i] << std::endl;
+        //         std::cout << "Ntuple wave : " << dataFromNtuple.waveform()[i] << std::endl;
+        //     }
+        // }
+
+        printProgress( (iEvt + 1) , totalEntryfromData);
+    }
+
+    if (errorCount) {
+        std::cout << "[ERROR] Event content mismatch error in MID : " << cid.mid() << " Ch : " << cid.channel() << std::endl;
+        return false;
+    }
+    else {
+        std::cout << "[OK] Event content well matched in MID : " << cid.mid() << " Ch : " << cid.channel() << std::endl;
+        return true;
+    }
+}
 
 TH1F* TBvalid::drawWaveHistFromNtuple(TBcid cid, const std::string histName) {
     if (this->ntupleList_.size() == 0) {

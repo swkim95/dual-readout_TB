@@ -141,32 +141,43 @@ if not os.path.exists(outDir) :
 print("Data files : ", DataFiles)
 print("Ntuples : ", Ntuples)
 
-# cid_mc = pydrcTB.TBcid(1, 16)
-# cid_tc = pydrcTB.TBcid(1, 14)
-# cid_ps = pydrcTB.TBcid(1, 12)
+cid_mc = pydrcTB.TBcid(1, 16)
+cid_tc = pydrcTB.TBcid(1, 14)
+cid_ps = pydrcTB.TBcid(1, 12)
 
-# cid_dwc1_r = pydrcTB.TBcid(1, 17)
-# cid_dwc1_l = pydrcTB.TBcid(1, 19)
-# cid_dwc1_u = pydrcTB.TBcid(1, 21)
-# cid_dwc1_d = pydrcTB.TBcid(1, 23)
+cid_dwc1_r = pydrcTB.TBcid(1, 17)
+cid_dwc1_l = pydrcTB.TBcid(1, 19)
+cid_dwc1_u = pydrcTB.TBcid(1, 21)
+cid_dwc1_d = pydrcTB.TBcid(1, 23)
 
-# cid_dwc2_r = pydrcTB.TBcid(1, 25)
-# cid_dwc2_l = pydrcTB.TBcid(1, 27)
-# cid_dwc2_u = pydrcTB.TBcid(1, 29)
-# cid_dwc2_d = pydrcTB.TBcid(1, 31)
+cid_dwc2_r = pydrcTB.TBcid(1, 25)
+cid_dwc2_l = pydrcTB.TBcid(1, 27)
+cid_dwc2_u = pydrcTB.TBcid(1, 29)
+cid_dwc2_d = pydrcTB.TBcid(1, 31)
 
-# cid_M1T1_S = pydrcTB.TBcid(1, 1)
-# cid_M1T1_C = pydrcTB.TBcid(1, 9)
+cid_M2T1_S = pydrcTB.TBcid(2, 1)
+cid_M2T6_S = pydrcTB.TBcid(2, 2)
+cid_M2T2_S = pydrcTB.TBcid(2, 3)
+cid_M2T7_S = pydrcTB.TBcid(2, 4)
+cid_M2T3_S = pydrcTB.TBcid(2, 5)
+cid_M2T8_S = pydrcTB.TBcid(2, 6)
+cid_M2T4_S = pydrcTB.TBcid(2, 7)
+cid_M2T9_S = pydrcTB.TBcid(2, 8)
 
-# cid_M1T2_S = pydrcTB.TBcid(1, 3)
-# cid_M1T2_C = pydrcTB.TBcid(1, 11)
+cid_M2T1_C = pydrcTB.TBcid(2, 9)
+cid_M2T6_C = pydrcTB.TBcid(2, 10)
+cid_M2T2_C = pydrcTB.TBcid(2, 11)
+cid_M2T7_C = pydrcTB.TBcid(2, 12)
+cid_M2T3_C = pydrcTB.TBcid(2, 13)
+cid_M2T8_C = pydrcTB.TBcid(2, 14)
+cid_M2T4_C = pydrcTB.TBcid(2, 15)
+cid_M2T9_C = pydrcTB.TBcid(2, 16)
 
-# cid_M1T3_S = pydrcTB.TBcid(1, 7)
-# cid_M1T3_C = pydrcTB.TBcid(1, 15)
-
-# cid_M1T4_S = pydrcTB.TBcid(1, 5)
-# cid_M1T4_C = pydrcTB.TBcid(1, 13)
-
+cid_list = [cid_mc, cid_tc, cid_ps,
+            cid_dwc1_r, cid_dwc1_l, cid_dwc1_u, cid_dwc1_d,
+            cid_dwc2_r, cid_dwc2_l, cid_dwc2_u, cid_dwc2_d,
+            cid_M2T1_S, cid_M2T2_S, cid_M2T3_S, cid_M2T4_S, cid_M2T6_S, cid_M2T7_S, cid_M2T8_S, cid_M2T9_S,
+            cid_M2T1_C, cid_M2T2_C, cid_M2T3_C, cid_M2T4_C, cid_M2T6_C, cid_M2T7_C, cid_M2T8_C, cid_M2T9_C]
 # For validating whole single run, do this :
 TButils = pydrcTB.TButility()
 TButils.loading("mapping_data_MCPPMT_positiveSignal_v3.csv")
@@ -177,22 +188,22 @@ validator.setNtupleList(Ntuples)
 #     validator.checkFastTrigNum()
 # else :
 #     validator.checkWaveTrigNum()
-for MID in range(1, 2) :
-    for ch in range(1, 2) :
-        print(f"Validating MID : {MID} Ch : {ch}")
-        cid = pydrcTB.TBcid(MID, ch)
-        det = TButils.find(cid)
-        Data_hist_name = f"h_Data_MID{MID}Ch{ch}"
-        Ntuples_hist_name = f"h_Ntuple_MID{MID}Ch{ch}"
-        Ratio_hist_name = f"h_Ratio_MID{MID}Ch{ch}"
-        if not ( det.isNull() ) :
-            if args.doFast :
-                # Data_hist = validator.drawFastHistFromData(cid, Data_hist_name, False)
-                # Ntup_hist = validator.drawFastHistFromNtuple(cid, Ntuples_hist_name, False)
-                # validator.drawRatio(Data_hist, Ntup_hist, Ratio_hist_name, outDir)
-                validator.simpleValidFast(cid)
-            else :
-                # Data_hist = validator.drawWaveHistFromData(cid, Data_hist_name)
-                # Ntup_hist = validator.drawWaveHistFromNtuple(cid, Ntuples_hist_name)                
-                # validator.drawRatio(Data_hist, Ntup_hist, Ratio_hist_name, outDir)
-                validator.simpleValidWave(cid)
+for cid in cid_list :
+    MID = cid.mid()
+    ch = cid.channe()
+    print(f"Validating MID : {MID} Ch : {ch}")
+    det = TButils.find(cid)
+    Data_hist_name = f"h_Data_MID{MID}Ch{ch}"
+    Ntuples_hist_name = f"h_Ntuple_MID{MID}Ch{ch}"
+    Ratio_hist_name = f"h_Ratio_MID{MID}Ch{ch}"
+    if not ( det.isNull() ) :
+        if args.doFast :
+            # Data_hist = validator.drawFastHistFromData(cid, Data_hist_name, False)
+            # Ntup_hist = validator.drawFastHistFromNtuple(cid, Ntuples_hist_name, False)
+            # validator.drawRatio(Data_hist, Ntup_hist, Ratio_hist_name, outDir)
+            validator.simpleValidFast(cid)
+        else :
+            # Data_hist = validator.drawWaveHistFromData(cid, Data_hist_name)
+            # Ntup_hist = validator.drawWaveHistFromNtuple(cid, Ntuples_hist_name)                
+            # validator.drawRatio(Data_hist, Ntup_hist, Ratio_hist_name, outDir)
+            validator.simpleValidWave(cid)
