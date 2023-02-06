@@ -31,6 +31,7 @@ class TBvalid {
         TBvalid() {};
         ~TBvalid() {};
 
+        void checkRatio(TH1F* den, TH1F* num, const std::string histName, const std::string outDir);
         void drawRatio(TH1F* den, TH1F* num, const std::string histName, const std::string outDir);
 
         TH1F* drawFastHistFromData(TBcid cid, const std::string histName, bool drawTiming);
@@ -43,6 +44,12 @@ class TBvalid {
         TH1F* drawWaveHistFromNtuple(TBcid cid, const std::string histName);
         TH1F* drawWaveHistFromNtuple(const std::vector<std::string>& ntupleList, TBcid cid, const std::string histName);
         
+        bool simpleValidFast(const std::vector<std::vector<std::string>>& datList,const std::vector<std::string>& ntupleList, TBcid cid);
+        bool simpleValidWave(const std::vector<std::vector<std::string>>& datList,const std::vector<std::string>& ntupleList, TBcid cid);
+
+        bool py_simpleValidFast(TBcid cid);
+        bool py_simpleValidWave(TBcid cid);
+
         void checkFastTrigNum();
         void checkWaveTrigNum();
         
