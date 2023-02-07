@@ -171,7 +171,7 @@ cid_list = [cid_mc,     cid_tc,     cid_ps,
             cid_dwc1_r, cid_dwc1_l, cid_dwc1_u, cid_dwc1_d,
             cid_dwc2_r, cid_dwc2_l, cid_dwc2_u, cid_dwc2_d,
             cid_M1T1_S, cid_M1T2_S, cid_M1T3_S, cid_M1T4_S,
-            cid_M1T1_C, cid_M1T1_C, cid_M1T1_C, cid_M1T1_C]
+            cid_M1T1_C, cid_M1T2_C, cid_M1T3_C, cid_M1T4_C]
 
 # For debugging
 # cid_list = [cid_M1T1_S]
