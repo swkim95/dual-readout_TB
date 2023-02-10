@@ -29,12 +29,12 @@ int main(int argc, char** argv) {
     utility.loading("/gatbawi/dream/mapping/mapping_Aug2022TB.root");
     utility.loadped( ("/gatbawi/dream/ped/mean/Run" + std::to_string(runNum) + "_pedestalHist_mean.root").c_str() );
     // Get DWC info
-    TFile* dwcFile = TFile::Open(("/u/user/swkim/data_certificate/dual-readout_TB/dwc/dwc_Run_" + std::to_string(runNum) + ".root").c_str());
+    TFile* dwcFile = TFile::Open(("./dwc/dwc_Run_" + std::to_string(runNum) + ".root").c_str());
     if (dwcFile->IsOpen()) {
-        std::cout << "Opened DWC info : u/user/swkim/data_certificate/dual-readout_TB/dwc/dwc_Run_" + std::to_string(runNum) + ".root" << std::endl;
+        std::cout << "Opened DWC info : ./dwc/dwc_Run_" + std::to_string(runNum) + ".root" << std::endl;
     }
     else {
-        std::cout << "[ERROR] Failed to open DWC info : u/user/swkim/data_certificate/dual-readout_TB/dwc/dwc_Run_" + std::to_string(runNum) + ".root" << std::endl;
+        std::cout << "[ERROR] Failed to open DWC info : ./dwc/dwc_Run_" + std::to_string(runNum) + ".root" << std::endl;
         return 0;
     }
     // Get channel IDs
@@ -68,15 +68,7 @@ int main(int argc, char** argv) {
     TH2D* dwc2_correctedPos = new TH2D("dwc2_correctedPos", "dwc2_correctedPos;mm;mm;events", 480, -120., 120., 480, -120., 120.);
 
     // Load data using TChain
-    TChain* evtChain = new TChain("events");
-    for (int fn = 0; fn < 50; fn++) {
-        std::string fileName = "ntuple_Run_" + std::to_string(runNum) + "_Wave_" + std::to_string(fn) + ".root";
-        std::string filePath = "/gatbawi/dream/ntuple/waveform/Run_"  + std::to_string(runNum) + "/" + fileName;
-        if ( !access(filePath.c_str(), F_OK) ){
-            std::cout << fn << " Ntuple file added to TChain : " << filePath << std::endl;
-            evtChain->Add(filePath.c_str());
-        }
-    }
+    TChain* evtChain = getNtupleChain(runNum);
     TBevt<TBwaveform>* anEvt = new TBevt<TBwaveform>(); 
     evtChain->SetBranchAddress("TBevt", &anEvt);
 
@@ -96,7 +88,7 @@ int main(int argc, char** argv) {
 
     // Evt Loop
     for (int iEvt = 0; iEvt < totalEntry; iEvt++) {
-        printProgress(iEvt + 1, totalEntry);
+        if(iEvt % 1000 == 0) printProgress(iEvt + 1, totalEntry);
 
         evtChain->GetEntry(iEvt);
         TBwaveform psData = anEvt->data(pscid);
@@ -139,13 +131,13 @@ int main(int argc, char** argv) {
 
         // PS Int. ADC
         float psIntADC = 0.f;
-        for (int bin = 240; bin < 520; bin++) {
+        for (int bin = 220; bin < 390; bin++) {
             int waveformBin = bin + 1;
             psIntADC += psPed - psWaveform[waveformBin];
         }
         // MC Int. ADC
         float muIntADC = 0.f;
-        for (int bin = 820; bin < 1000; bin++) {
+        for (int bin = 840; bin < 960; bin++) {
             int waveformBin = bin + 1;
             muIntADC += muPed - muWaveform[waveformBin];
         }
@@ -154,19 +146,19 @@ int main(int argc, char** argv) {
         muIntHist->Fill(muIntADC);
     
         // For DWC PID
-        if (! dwcCorrelationPID(dwc1_correctedPosition, dwc2_correctedPosition, 2.f) ) continue;
+        if (! dwcCorrelationPID(dwc1_correctedPosition, dwc2_correctedPosition, 1.5f) ) continue;
 
         // PS, MC Int. ADC plot after PID
         psIntHist_PID->Fill(psIntADC);
         muIntHist_PID->Fill(muIntADC);
     }
 
-    std::string outFile = "/u/user/swkim/data_certificate/dual-readout_TB/analysis/auxPID/auxPID_Run_" + std::to_string(runNum) + ".root";
+    std::string outFile = "./auxPID/auxPID_Run_" + std::to_string(runNum) + ".root";
     TFile* outputRoot = new TFile(outFile.c_str(), "RECREATE");
     outputRoot->cd();
 
     // Fit functions
-    TF1* psFitFunc = new TF1("psFitFunc", "gaus", 5000, 21000);
+    TF1* psFitFunc = new TF1("psFitFunc", "gaus", 9000, 15000); // This range need to be optimized to give best Chi2/NDF after fitting PS int. ADC
     // TF1* muFitFunc = new TF1("muFitFunc", "gaus", 5000, 21000);
 
     psIntHist->Write();

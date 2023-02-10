@@ -18,27 +18,29 @@
 #include <TH2.h>
 #include <TCanvas.h>
 
+// This macro will draw single event waveform (without any PID cuts) from waveform ntuple
+// How to execute
+// On local or batch, run the following command :
+// ./TBdrawWave.exe <run number> <max # of events to process>
+
 int main(int argc, char** argv) {
     gStyle->SetOptFit(1);
 
     int runNum = std::stoi(argv[1]);
     int maxEntry = std::stoi(argv[2]);
 
-    std::string pedPath = "/gatbawi/dream/ped/mean/Run" + std::to_string(runNum) + "_pedestalHist_mean.root";
-
     TButility utility = TButility();
     utility.loading("/gatbawi/dream/mapping/mapping_Aug2022TB.root");
-    utility.loadped(pedPath);
+    utility.loadped( ("/gatbawi/dream/ped/mean/Run" + std::to_string(runNum) + "_pedestalHist_mean.root").c_str() );
 
     TBcid pscid = utility.getcid(TBdetector::detid::preshower);
     TBcid mucid = utility.getcid(TBdetector::detid::muon);
-    TBcid tccid = utility.getcid(TBdetector::detid::tail);
 
     std::vector<TBcid> dwc1_cid;
-    dwc1_cid.push_back(TBcid(1,17)); // R
-    dwc1_cid.push_back(TBcid(1,19)); // L
-    dwc1_cid.push_back(TBcid(1,21)); // U
-    dwc1_cid.push_back(TBcid(1,23)); // D
+    dwc1_cid.push_back(TBcid(1,17)); // Right
+    dwc1_cid.push_back(TBcid(1,19)); // Left
+    dwc1_cid.push_back(TBcid(1,21)); // Up
+    dwc1_cid.push_back(TBcid(1,23)); // Down
 
     std::vector<TBcid> dwc2_cid;
     dwc2_cid.push_back(TBcid(1,25)); // R
@@ -58,156 +60,123 @@ int main(int argc, char** argv) {
     M1TS_cid.push_back(utility.getcid(TBdetector::detid::PMT, 1, 3, false));
     M1TS_cid.push_back(utility.getcid(TBdetector::detid::PMT, 1, 4, false));
 
-    float psPed = utility.retrievePed(pscid);
-    float muPed = utility.retrievePed(mucid);
-    float tcPed = utility.retrievePed(tccid);
+    std::vector<TBcid> M2TC_cid;
+    M2TC_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 1, true));
+    M2TC_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 2, true));
+    M2TC_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 3, true));
+    M2TC_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 4, true));
+    M2TC_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 6, true));
+    M2TC_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 7, true));
+    M2TC_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 8, true));
+    M2TC_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 9, true));
 
-    std::vector<float> dwc1_ped;
-    for(TBcid cid : dwc1_cid) {
-        dwc1_ped.push_back(utility.retrievePed(cid));
-    }
-    std::vector<float> dwc2_ped;
-    for(TBcid cid : dwc2_cid) {
-        dwc2_ped.push_back(utility.retrievePed(cid));
-    }
-    
-    std::vector<float> M1TC_ped;
-    for(TBcid cid : M1TC_cid) {
-        M1TC_ped.push_back(utility.retrievePed(cid));
-    }
-    std::vector<float> M1TS_ped;
-    for(TBcid cid : M1TS_cid) {
-        M1TS_ped.push_back(utility.retrievePed(cid));
-    }
+    std::vector<TBcid> M2TS_cid;
+    M2TS_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 1, false));
+    M2TS_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 2, false));
+    M2TS_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 3, false));
+    M2TS_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 4, false));
+    M2TS_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 6, false));
+    M2TS_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 7, false));
+    M2TS_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 8, false));
+    M2TS_cid.push_back(utility.getcid(TBdetector::detid::PMT, 2, 9, false));
 
-    TH1F* psHist = new TH1F("psHist", "psHist", 1000, 0, 1000);
-    psHist->GetYaxis()->SetRangeUser(-100, 4096);
-    TH1F* psPedHist = new TH1F("psPedHist", "psPedHist", 1000, 0, 1000);
-    psPedHist->GetYaxis()->SetRangeUser(-100, 4096);
-    TH2F* ps2DHist = new TH2F("ps2DHist", "ps2DHist", 1000, 0, 1000, 4096, 0, 4096);
-    TH2F* ps2DPedHist = new TH2F("ps2DPedHist", "ps2DPedHist", 1000, 0, 1000, 5096, -1000, 4096);
+    // Load data using TChain
+    TChain* evtChain = getNtupleChain(runNum);
+    TBevt<TBwaveform>* anEvt = new TBevt<TBwaveform>(); 
+    evtChain->SetBranchAddress("TBevt", &anEvt);
 
-    TH1F* muHist = new TH1F("muHist", "muHist", 1000, 0, 1000);
-    muHist->GetYaxis()->SetRangeUser(-100, 4096);
-    TH1F* muPedHist = new TH1F("muPedHist", "muPedHist", 1000, 0, 1000);
-    muPedHist->GetYaxis()->SetRangeUser(-100, 4096);
-    TH2F* mu2DHist = new TH2F("mu2DHist", "mu2DHist", 1000, 0, 1000, 4096, 0, 4096);
-    TH2F* mu2DPedHist = new TH2F("mu2DPedHist", "mu2DPedHist", 1000, 0, 1000, 5096, -1000, 4096);
-
-    TH1F* tcHist = new TH1F("tcHist", "tcHist", 1000, 0, 1000);
-    tcHist->GetYaxis()->SetRangeUser(-100, 4096);
-    TH1F* tcPedHist = new TH1F("tcPedHist", "tcPedHist", 1000, 0, 1000);
-    tcPedHist->GetYaxis()->SetRangeUser(-100, 4096);
-    TH2F* tc2DHist = new TH2F("tc2DHist", "tc2DHist", 1000, 0, 1000, 4096, 0, 4096);
-    TH2F* tc2DPedHist = new TH2F("tc2DPedHist", "tc2DPedHist", 1000, 0, 1000, 5096, -1000, 4096);
-
-    TH1F* dwc1RHist = new TH1F("dwc1RHist", "dwc1RHist", 1000, 0, 1000);
-    TH1F* dwc1RPedHist = new TH1F("dwc1RPedHist", "dwc1RPedHist", 1000, 0, 1000);
-    dwc1RHist->GetYaxis()->SetRangeUser(-100, 4096);
-    dwc1RPedHist->GetYaxis()->SetRangeUser(-100, 4096);    
-
-    TH1F* dwc1LHist = new TH1F("dwc1LHist", "dwc1LHist", 1000, 0, 1000);
-    TH1F* dwc1LPedHist = new TH1F("dwc1LPedHist", "dwc1LPedHist", 1000, 0, 1000);
-    dwc1LHist->GetYaxis()->SetRangeUser(-100, 4096);
-    dwc1LPedHist->GetYaxis()->SetRangeUser(-100, 4096);    
-
-    TH1F* dwc1UHist = new TH1F("dwc1UHist", "dwc1UHist", 1000, 0, 1000);
-    TH1F* dwc1UPedHist = new TH1F("dwc1UPedHist", "dwc1UPedHist", 1000, 0, 1000);
-    dwc1UHist->GetYaxis()->SetRangeUser(-100, 4096);
-    dwc1UPedHist->GetYaxis()->SetRangeUser(-100, 4096);    
-
-    TH1F* dwc1DHist = new TH1F("dwc1DHist", "dwc1DHist", 1000, 0, 1000);
-    TH1F* dwc1DPedHist = new TH1F("dwc1DPedHist", "dwc1DPedHist", 1000, 0, 1000);
-    dwc1DHist->GetYaxis()->SetRangeUser(-100, 4096);
-    dwc1DPedHist->GetYaxis()->SetRangeUser(-100, 4096);    
-
-    TH1F* dwc2RHist = new TH1F("dwc2RHist", "dwc2RHist", 1000, 0, 1000);
-    TH1F* dwc2RPedHist = new TH1F("dwc2RPedHist", "dwc2RPedHist", 1000, 0, 1000);
-    dwc2RHist->GetYaxis()->SetRangeUser(-100, 4096);
-    dwc2RPedHist->GetYaxis()->SetRangeUser(-100, 4096);    
-
-    TH1F* dwc2LHist = new TH1F("dwc2LHist", "dwc2LHist", 1000, 0, 1000);
-    TH1F* dwc2LPedHist = new TH1F("dwc2LPedHist", "dwc2LPedHist", 1000, 0, 1000);
-    dwc2LHist->GetYaxis()->SetRangeUser(-100, 4096);
-    dwc2LPedHist->GetYaxis()->SetRangeUser(-100, 4096);    
-
-    TH1F* dwc2UHist = new TH1F("dwc2UHist", "dwc2UHist", 1000, 0, 1000);
-    TH1F* dwc2UPedHist = new TH1F("dwc2UPedHist", "dwc2UPedHist", 1000, 0, 1000);
-    dwc2UHist->GetYaxis()->SetRangeUser(-100, 4096);
-    dwc2UPedHist->GetYaxis()->SetRangeUser(-100, 4096);    
-
-    TH1F* dwc2DHist = new TH1F("dwc2DHist", "dwc2DHist", 1000, 0, 1000);
-    TH1F* dwc2DPedHist = new TH1F("dwc2DPedHist", "dwc2DPedHist", 1000, 0, 1000);
-    dwc2DHist->GetYaxis()->SetRangeUser(-100, 4096);
-    dwc2DPedHist->GetYaxis()->SetRangeUser(-100, 4096);    
-
-    TH1F* M1T1CHist = new TH1F("M1T1CHist", "M1T1CHist", 1000, 0, 1000);
-    TH1F* M1T1CPedHist = new TH1F("M1T1CPedHist", "M1T1CPedHist", 1000, 0, 1000);
-    M1T1CHist->GetYaxis()->SetRangeUser(-100, 4096);
-    M1T1CPedHist->GetYaxis()->SetRangeUser(-100, 4096);
-    
-    TH1F* M1T2CHist = new TH1F("M1T2CHist", "M1T2CHist", 1000, 0, 1000);
-    TH1F* M1T2CPedHist = new TH1F("M1T2CPedHist", "M1T2CPedHist", 1000, 0, 1000);
-    M1T2CHist->GetYaxis()->SetRangeUser(-100, 4096);
-    M1T2CPedHist->GetYaxis()->SetRangeUser(-100, 4096);
-
-    TH1F* M1T3CHist = new TH1F("M1T3CHist", "M1T3CHist", 1000, 0, 1000);
-    TH1F* M1T3CPedHist = new TH1F("M1T3CPedHist", "M1T3CPedHist", 1000, 0, 1000);
-    M1T3CHist->GetYaxis()->SetRangeUser(-100, 4096);
-    M1T3CPedHist->GetYaxis()->SetRangeUser(-100, 4096);
-
-    TH1F* M1T4CHist = new TH1F("M1T4CHist", "M1T4CHist", 1000, 0, 1000);
-    TH1F* M1T4CPedHist = new TH1F("M1T4CPedHist", "M1T4CPedHist", 1000, 0, 1000);
-    M1T4CHist->GetYaxis()->SetRangeUser(-100, 4096);
-    M1T4CPedHist->GetYaxis()->SetRangeUser(-100, 4096);
-
-    TH1F* M1T1SHist = new TH1F("M1T1SHist", "M1T1SHist", 1000, 0, 1000);
-    TH1F* M1T1SPedHist = new TH1F("M1T1SPedHist", "M1T1SPedHist", 1000, 0, 1000);
-    M1T1SHist->GetYaxis()->SetRangeUser(-100, 4096);
-    M1T1SPedHist->GetYaxis()->SetRangeUser(-100, 4096);
-
-    TH1F* M1T2SHist = new TH1F("M1T2SHist", "M1T2SHist", 1000, 0, 1000);
-    TH1F* M1T2SPedHist = new TH1F("M1T2SPedHist", "M1T2SPedHist", 1000, 0, 1000);
-    M1T2SHist->GetYaxis()->SetRangeUser(-100, 4096);
-    M1T2SPedHist->GetYaxis()->SetRangeUser(-100, 4096);
-
-    TH1F* M1T3SHist = new TH1F("M1T3SHist", "M1T3SHist", 1000, 0, 1000);
-    TH1F* M1T3SPedHist = new TH1F("M1T3SPedHist", "M1T3SPedHist", 1000, 0, 1000);
-    M1T3SHist->GetYaxis()->SetRangeUser(-100, 4096);
-    M1T3SPedHist->GetYaxis()->SetRangeUser(-100, 4096);
-
-    TH1F* M1T4SHist = new TH1F("M1T4SHist", "M1T4SHist", 1000, 0, 1000);
-    TH1F* M1T4SPedHist = new TH1F("M1T4SPedHist", "M1T4SPedHist", 1000, 0, 1000);
-    M1T4SHist->GetYaxis()->SetRangeUser(-100, 4096);
-    M1T4SPedHist->GetYaxis()->SetRangeUser(-100, 4096);
-
-    TChain* evtChain = new TChain("events");
-
-    for (int fn = 0; fn < 50; fn++) {
-        std::string fileName = "ntuple_Run_" + std::to_string(runNum) + "_Wave_" + std::to_string(fn) + ".root";
-        std::string filePath = "/gatbawi/dream/ntuple/waveform/Run_"  + std::to_string(runNum) + "/" + fileName;
-        if ( !access(filePath.c_str(), F_OK) ){
-            std::cout << fn << "th ntuple added to TChain : " << filePath << std::endl;
-            evtChain->Add(filePath.c_str());
-        }
-    }
     int totalEntry = evtChain->GetEntries();
-
     std::cout << "Total entries : " << totalEntry << std::endl;
     if ( (maxEntry > 0) && (maxEntry < totalEntry) ) {
         totalEntry = maxEntry;
         std::cout << "Will process maximum " << std::to_string(totalEntry) << " events" << std::endl;
     }
 
-    TBevt<TBwaveform>* anEvt = new TBevt<TBwaveform>(); 
-    evtChain->SetBranchAddress("TBevt", &anEvt);
+    std::string outFile = "./waveform/Waveform_Run_" + std::to_string(runNum) + ".root";
+    TFile* outputRoot = new TFile(outFile.c_str(), "RECREATE");
+    outputRoot->cd();
 
     // Evt Loop
     for (int iEvt = 0; iEvt < totalEntry; iEvt++) {
         evtChain->GetEntry(iEvt);
+
+        TH1F* psWaveformHist = new TH1F( ( "psWaveform_" + std::to_string(iEvt) ).c_str(), ("psWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        psWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* muWaveformHist = new TH1F( ( "muWaveform_" + std::to_string(iEvt) ).c_str(), ("muWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        muWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+
+        TH1F* dwc1RWaveformHist = new TH1F( ( "dwc1RWaveform_" + std::to_string(iEvt) ).c_str(), ("dwc1RWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        dwc1RWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* dwc1LWaveformHist = new TH1F( ( "dwc1LWaveform_" + std::to_string(iEvt) ).c_str(), ("dwc1LWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        dwc1LWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* dwc1UWaveformHist = new TH1F( ( "dwc1UWaveform_" + std::to_string(iEvt) ).c_str(), ("dwc1UWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        dwc1UWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* dwc1DWaveformHist = new TH1F( ( "dwc1DWaveform_" + std::to_string(iEvt) ).c_str(), ("dwc1DWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        dwc1DWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+
+        TH1F* dwc2RWaveformHist = new TH1F( ( "dwc2RWaveform_" + std::to_string(iEvt) ).c_str(), ("dwc2RWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        dwc2RWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* dwc2LWaveformHist = new TH1F( ( "dwc2LWaveform_" + std::to_string(iEvt) ).c_str(), ("dwc2LWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        dwc2LWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* dwc2UWaveformHist = new TH1F( ( "dwc2UWaveform_" + std::to_string(iEvt) ).c_str(), ("dwc2UWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        dwc2UWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* dwc2DWaveformHist = new TH1F( ( "dwc2DWaveform_" + std::to_string(iEvt) ).c_str(), ("dwc2DWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        dwc2DWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+
+        TH1F* M1T1CWaveformHist = new TH1F( ( "M1T1CWaveform_" + std::to_string(iEvt) ).c_str(), ("M1T1CWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M1T1CWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M1T2CWaveformHist = new TH1F( ( "M1T2CWaveform_" + std::to_string(iEvt) ).c_str(), ("M1T2CWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M1T2CWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M1T3CWaveformHist = new TH1F( ( "M1T3CWaveform_" + std::to_string(iEvt) ).c_str(), ("M1T3CWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M1T3CWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M1T4CWaveformHist = new TH1F( ( "M1T4CWaveform_" + std::to_string(iEvt) ).c_str(), ("M1T4CWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M1T4CWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+
+        TH1F* M1T1SWaveformHist = new TH1F( ( "M1T1SWaveform_" + std::to_string(iEvt) ).c_str(), ("M1T1SWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M1T1SWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M1T2SWaveformHist = new TH1F( ( "M1T2SWaveform_" + std::to_string(iEvt) ).c_str(), ("M1T2SWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M1T2SWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M1T3SWaveformHist = new TH1F( ( "M1T3SWaveform_" + std::to_string(iEvt) ).c_str(), ("M1T3SWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M1T3SWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M1T4SWaveformHist = new TH1F( ( "M1T4SWaveform_" + std::to_string(iEvt) ).c_str(), ("M1T4SWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M1T4SWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+
+        TH1F* M2T1CWaveformHist = new TH1F( ( "M2T1CWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T1CWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T1CWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T2CWaveformHist = new TH1F( ( "M2T2CWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T2CWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T2CWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T3CWaveformHist = new TH1F( ( "M2T3CWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T3CWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T3CWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T4CWaveformHist = new TH1F( ( "M2T4CWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T4CWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T4CWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T6CWaveformHist = new TH1F( ( "M2T6CWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T6CWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T6CWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T7CWaveformHist = new TH1F( ( "M2T7CWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T7CWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T7CWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T8CWaveformHist = new TH1F( ( "M2T8CWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T8CWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T8CWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T9CWaveformHist = new TH1F( ( "M2T9CWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T9CWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T9CWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+
+        TH1F* M2T1SWaveformHist = new TH1F( ( "M2T1SWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T1SWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T1SWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T2SWaveformHist = new TH1F( ( "M2T2SWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T2SWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T2SWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T3SWaveformHist = new TH1F( ( "M2T3SWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T3SWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T3SWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T4SWaveformHist = new TH1F( ( "M2T4SWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T4SWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T4SWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T6SWaveformHist = new TH1F( ( "M2T6SWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T6SWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T6SWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T7SWaveformHist = new TH1F( ( "M2T7SWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T7SWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T7SWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T8SWaveformHist = new TH1F( ( "M2T8SWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T8SWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T8SWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+        TH1F* M2T9SWaveformHist = new TH1F( ( "M2T9SWaveform_" + std::to_string(iEvt) ).c_str(), ("M2T9SWaveform_" + std::to_string(iEvt) + ";bin;ADC").c_str() , 1000, 0, 1000);
+        M2T9SWaveformHist->GetYaxis()->SetRangeUser(-100, 4096);
+
         TBwaveform psData = anEvt->data(pscid);
         TBwaveform muData = anEvt->data(mucid);
-        TBwaveform tcData = anEvt->data(tccid);
 
         std::vector<TBwaveform> dwc1_data;
         for (TBcid cid : dwc1_cid) {
@@ -227,9 +196,17 @@ int main(int argc, char** argv) {
             M1TS_data.push_back(anEvt->data(cid));
         }
 
+        std::vector<TBwaveform> M2TC_data;
+        for (TBcid cid : M2TC_cid) {
+            M2TC_data.push_back(anEvt->data(cid));
+        }
+        std::vector<TBwaveform> M2TS_data;
+        for (TBcid cid : M2TS_cid) {
+            M2TS_data.push_back(anEvt->data(cid));
+        }
+
         std::vector<short> psWaveform = psData.waveform();
         std::vector<short> muWaveform = muData.waveform();
-        std::vector<short> tcWaveform = tcData.waveform();
 
         std::vector< std::vector<short> > dwc1_waveform;
         for (TBwaveform data : dwc1_data) {
@@ -249,110 +226,103 @@ int main(int argc, char** argv) {
             M1TS_waveform.push_back(data.waveform());
         }
 
+        std::vector< std::vector<short> > M2TC_waveform;
+        for (TBwaveform data : M2TC_data) {
+            M2TC_waveform.push_back(data.waveform());
+        }
+        std::vector< std::vector<short> > M2TS_waveform;
+        for (TBwaveform data : M2TS_data) {
+            M2TS_waveform.push_back(data.waveform());
+        }
+
         for (int bin = 0; bin < 1000; bin++) {
             int waveformBin = bin + 1;
-            float ps_PedCorrectedWave = psPed - psWaveform[waveformBin];
-            float mu_PedCorrectedWave = muPed - muWaveform[waveformBin];
-            float tc_PedCorrectedWave = tcPed - tcWaveform[waveformBin];
 
-            float dwc1R_PedCorrectedWave = dwc1_ped.at(0) - dwc1_waveform.at(0)[waveformBin];
-            float dwc1L_PedCorrectedWave = dwc1_ped.at(1) - dwc1_waveform.at(1)[waveformBin];
-            float dwc1U_PedCorrectedWave = dwc1_ped.at(2) - dwc1_waveform.at(2)[waveformBin];
-            float dwc1D_PedCorrectedWave = dwc1_ped.at(3) - dwc1_waveform.at(3)[waveformBin];
+            psWaveformHist->Fill(bin, psWaveform[waveformBin]);
+            muWaveformHist->Fill(bin, muWaveform[waveformBin]);
+            
+            dwc1RWaveformHist->Fill(bin, dwc1_waveform.at(0)[waveformBin]);
+            dwc1LWaveformHist->Fill(bin, dwc1_waveform.at(1)[waveformBin]);
+            dwc1UWaveformHist->Fill(bin, dwc1_waveform.at(2)[waveformBin]);
+            dwc1DWaveformHist->Fill(bin, dwc1_waveform.at(3)[waveformBin]);
 
-            float dwc2R_PedCorrectedWave = dwc2_ped.at(0) - dwc2_waveform.at(0)[waveformBin];
-            float dwc2L_PedCorrectedWave = dwc2_ped.at(1) - dwc2_waveform.at(1)[waveformBin];
-            float dwc2U_PedCorrectedWave = dwc2_ped.at(2) - dwc2_waveform.at(2)[waveformBin];
-            float dwc2D_PedCorrectedWave = dwc2_ped.at(3) - dwc2_waveform.at(3)[waveformBin];
+            dwc2RWaveformHist->Fill(bin, dwc2_waveform.at(0)[waveformBin]);
+            dwc2LWaveformHist->Fill(bin, dwc2_waveform.at(1)[waveformBin]);
+            dwc2UWaveformHist->Fill(bin, dwc2_waveform.at(2)[waveformBin]);
+            dwc2DWaveformHist->Fill(bin, dwc2_waveform.at(3)[waveformBin]);
 
-            float M1T1C_PedCorrectedWave = M1TC_ped.at(0) - M1TC_waveform.at(0)[waveformBin];
-            float M1T2C_PedCorrectedWave = M1TC_ped.at(1) - M1TC_waveform.at(1)[waveformBin];
-            float M1T3C_PedCorrectedWave = M1TC_ped.at(2) - M1TC_waveform.at(2)[waveformBin];
-            float M1T4C_PedCorrectedWave = M1TC_ped.at(3) - M1TC_waveform.at(3)[waveformBin];
+            M1T1CWaveformHist->Fill(bin, M1TC_waveform.at(0)[waveformBin]);
+            M1T2CWaveformHist->Fill(bin, M1TC_waveform.at(1)[waveformBin]);
+            M1T3CWaveformHist->Fill(bin, M1TC_waveform.at(2)[waveformBin]);
+            M1T4CWaveformHist->Fill(bin, M1TC_waveform.at(3)[waveformBin]);
 
-            float M1T1S_PedCorrectedWave = M1TS_ped.at(0) - M1TS_waveform.at(0)[waveformBin];
-            float M1T2S_PedCorrectedWave = M1TS_ped.at(1) - M1TS_waveform.at(1)[waveformBin];
-            float M1T3S_PedCorrectedWave = M1TS_ped.at(2) - M1TS_waveform.at(2)[waveformBin];
-            float M1T4S_PedCorrectedWave = M1TS_ped.at(3) - M1TS_waveform.at(3)[waveformBin];
+            M1T1SWaveformHist->Fill(bin, M1TS_waveform.at(0)[waveformBin]);
+            M1T2SWaveformHist->Fill(bin, M1TS_waveform.at(1)[waveformBin]);
+            M1T3SWaveformHist->Fill(bin, M1TS_waveform.at(2)[waveformBin]);
+            M1T4SWaveformHist->Fill(bin, M1TS_waveform.at(3)[waveformBin]);
 
-            psHist->Fill(bin, ( (float)psWaveform[waveformBin] / (float)totalEntry) );
-            psPedHist->Fill(bin, (float) ((float)ps_PedCorrectedWave / (float)totalEntry) );
-            ps2DHist->Fill(bin, (float)psWaveform[waveformBin]);
-            ps2DPedHist->Fill(bin, (float)ps_PedCorrectedWave) ;
+            M2T1CWaveformHist->Fill(bin, M2TC_waveform.at(0)[waveformBin]);
+            M2T2CWaveformHist->Fill(bin, M2TC_waveform.at(1)[waveformBin]);
+            M2T3CWaveformHist->Fill(bin, M2TC_waveform.at(2)[waveformBin]);
+            M2T4CWaveformHist->Fill(bin, M2TC_waveform.at(3)[waveformBin]);
+            M2T6CWaveformHist->Fill(bin, M2TC_waveform.at(4)[waveformBin]);
+            M2T7CWaveformHist->Fill(bin, M2TC_waveform.at(5)[waveformBin]);
+            M2T8CWaveformHist->Fill(bin, M2TC_waveform.at(6)[waveformBin]);
+            M2T9CWaveformHist->Fill(bin, M2TC_waveform.at(7)[waveformBin]);
 
-            muHist->Fill(bin, ( (float)muWaveform[waveformBin] / (float)totalEntry) );
-            muPedHist->Fill(bin, ((float)mu_PedCorrectedWave / (float)totalEntry) );
-            mu2DHist->Fill(bin, (float)muWaveform[waveformBin] );
-            mu2DPedHist->Fill(bin, (float)mu_PedCorrectedWave );
-
-            tcHist->Fill(bin, ( (float)tcWaveform[waveformBin] / (float)totalEntry) );
-            tcPedHist->Fill(bin, ( (float)tc_PedCorrectedWave / (float)totalEntry) );
-            tc2DHist->Fill(bin, (float)tcWaveform[waveformBin] );
-            tc2DPedHist->Fill(bin, (float)tc_PedCorrectedWave );
-
-            dwc1RHist->Fill(bin, ( (float)dwc1_waveform.at(0)[waveformBin] / (float)totalEntry) );
-            dwc1RPedHist->Fill(bin, ( (float)dwc1R_PedCorrectedWave / (float)totalEntry) );
-
-            dwc1LHist->Fill(bin, ( (float)dwc1_waveform.at(1)[waveformBin] / (float)totalEntry) );
-            dwc1LPedHist->Fill(bin, ( (float)dwc1L_PedCorrectedWave / (float)totalEntry) );
-
-            dwc1UHist->Fill(bin, ( (float)dwc1_waveform.at(2)[waveformBin] / (float)totalEntry) );
-            dwc1UPedHist->Fill(bin, ( (float)dwc1U_PedCorrectedWave / (float)totalEntry) );
-
-            dwc1DHist->Fill(bin, ( (float)dwc1_waveform.at(3)[waveformBin] / (float)totalEntry) );
-            dwc1DPedHist->Fill(bin, ( (float)dwc1D_PedCorrectedWave / (float)totalEntry) );
-
-            dwc2RHist->Fill(bin, ( (float)dwc2_waveform.at(0)[waveformBin] / (float)totalEntry) );
-            dwc2RPedHist->Fill(bin, ( (float)dwc2R_PedCorrectedWave / (float)totalEntry) );
-
-            dwc2LHist->Fill(bin, ( (float)dwc2_waveform.at(1)[waveformBin] / (float)totalEntry) );
-            dwc2LPedHist->Fill(bin, ( (float)dwc2L_PedCorrectedWave / (float)totalEntry) );
-
-            dwc2UHist->Fill(bin, ( (float)dwc2_waveform.at(2)[waveformBin] / (float)totalEntry) );
-            dwc2UPedHist->Fill(bin, ( (float)dwc2U_PedCorrectedWave / (float)totalEntry) );
-
-            dwc2DHist->Fill(bin, ( (float)dwc2_waveform.at(3)[waveformBin] / (float)totalEntry) );
-            dwc2DPedHist->Fill(bin, ( (float)dwc2D_PedCorrectedWave / (float)totalEntry) );
+            M2T1SWaveformHist->Fill(bin, M2TS_waveform.at(0)[waveformBin]);
+            M2T2SWaveformHist->Fill(bin, M2TS_waveform.at(1)[waveformBin]);
+            M2T3SWaveformHist->Fill(bin, M2TS_waveform.at(2)[waveformBin]);
+            M2T4SWaveformHist->Fill(bin, M2TS_waveform.at(3)[waveformBin]);
+            M2T6SWaveformHist->Fill(bin, M2TS_waveform.at(4)[waveformBin]);
+            M2T7SWaveformHist->Fill(bin, M2TS_waveform.at(5)[waveformBin]);
+            M2T8SWaveformHist->Fill(bin, M2TS_waveform.at(6)[waveformBin]);
+            M2T9SWaveformHist->Fill(bin, M2TS_waveform.at(7)[waveformBin]);
         }
+        
+        psWaveformHist->Write();
+        muWaveformHist->Write();
+
+        dwc1RWaveformHist->Write();
+        dwc1LWaveformHist->Write();
+        dwc1UWaveformHist->Write();
+        dwc1DWaveformHist->Write();
+
+        dwc2RWaveformHist->Write();
+        dwc2LWaveformHist->Write();
+        dwc2UWaveformHist->Write();
+        dwc2DWaveformHist->Write();
+
+        M1T1CWaveformHist->Write();
+        M1T2CWaveformHist->Write();
+        M1T3CWaveformHist->Write();
+        M1T4CWaveformHist->Write();
+
+        M1T1SWaveformHist->Write();
+        M1T2SWaveformHist->Write();
+        M1T3SWaveformHist->Write();
+        M1T4SWaveformHist->Write();
+
+        M2T1CWaveformHist->Write();
+        M2T2CWaveformHist->Write();
+        M2T3CWaveformHist->Write();
+        M2T4CWaveformHist->Write();
+        M2T6CWaveformHist->Write();
+        M2T7CWaveformHist->Write();
+        M2T8CWaveformHist->Write();
+        M2T9CWaveformHist->Write();
+
+        M2T1SWaveformHist->Write();
+        M2T2SWaveformHist->Write();
+        M2T3SWaveformHist->Write();
+        M2T4SWaveformHist->Write();
+        M2T6SWaveformHist->Write();
+        M2T7SWaveformHist->Write();
+        M2T8SWaveformHist->Write();
+        M2T9SWaveformHist->Write();
 
         if ( (iEvt % 1000) == 0 ) printProgress(iEvt + 1, totalEntry);
     }
-    std::string outFile = "/u/user/swkim/data_certificate/dual-readout_TB/analysis/AuxWaveform/AuxWaveform_Run_" + std::to_string(runNum) + ".root";
-    TFile* outputRoot = new TFile(outFile.c_str(), "RECREATE");
-    outputRoot->cd();
-
-    psHist->Write();
-    psPedHist->Write();
-    ps2DHist->Write();
-    ps2DPedHist->Write();
-
-    muHist->Write();
-    muPedHist->Write();
-    mu2DHist->Write();
-    mu2DPedHist->Write();
-
-    tcHist->Write();
-    tcPedHist->Write();
-    tc2DHist->Write();
-    tc2DPedHist->Write();
-
-    dwc1RHist->Write();
-    dwc1RPedHist->Write();
-    dwc1LHist->Write();
-    dwc1LPedHist->Write();
-    dwc1UHist->Write();
-    dwc1UPedHist->Write();
-    dwc1DHist->Write();
-    dwc1DPedHist->Write();
-
-    dwc2RHist->Write();
-    dwc2RPedHist->Write();
-    dwc2LHist->Write();
-    dwc2LPedHist->Write();
-    dwc2UHist->Write();
-    dwc2UPedHist->Write();
-    dwc2DHist->Write();
-    dwc2DPedHist->Write();
 
     outputRoot->Close();
 }

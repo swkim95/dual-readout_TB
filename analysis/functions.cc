@@ -3,11 +3,6 @@
 #include <stdlib.h>
 #include <iostream>
 #include <string>
-#include <chrono>
-#include <cmath>
-
-#include "TBevt.h"
-#include "TButility.h"
 
 #include "TROOT.h"
 #include "TStyle.h"
@@ -19,23 +14,48 @@
 #include <TH2D.h>
 #include <TCanvas.h>
 
-float getTime(float bin) {
-  return 400. * (bin / 1000.);
-}
+//////////////////////////////////////////////////////////////////////////////
+// For loading ntuples
+//////////////////////////////////////////////////////////////////////////////
 
-int getPeakBin(std::vector<short> waveform) {
-    return ( std::min_element(waveform.begin()+1, waveform.end()-23) - waveform.begin() );
-}
-
-float getPeakTime(std::vector<short> waveform) {
-    int peakBin = getPeakBin(waveform);
-    return (getTime(peakBin));
+TChain* getNtupleChain(int runNumber) {
+    TChain* evtChain = new TChain("events");
+    for (int fn = 0; fn < 50; fn++) {
+        std::string fileName = "ntuple_Run_" + std::to_string(runNumber) + "_Wave_" + std::to_string(fn) + ".root";
+        std::string filePath = "/gatbawi/dream/ntuple/waveform/Run_"  + std::to_string(runNumber) + "/" + fileName; // Enter your own ntuple file path here
+        if ( !access(filePath.c_str(), F_OK) ){
+            std::cout << "Ntuple # : " << fn << " added to TChain : " << filePath << std::endl; 
+            evtChain->Add(filePath.c_str());
+        }
+    }
+    return evtChain;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // For DWC position
 //////////////////////////////////////////////////////////////////////////////
 
+// Transfer waveform bin index to time (nanosecond)
+float getTime(float bin) {
+  return 400. * (bin / 1000.);
+}
+
+// Get peak bin index from raw waveform (peak == minimum value)
+int getPeakBin(std::vector<short> waveform) {
+    return ( std::min_element(waveform.begin()+1, waveform.end()-23) - waveform.begin() );
+}
+
+// Get peak timing from raw waveform (peak == minimum value)
+float getPeakTime(std::vector<short> waveform) {
+    int peakBin = getPeakBin(waveform);
+    return (getTime(peakBin));
+}
+
+// Calculate DWC position using DWC waveform peak timing (timing == nanosecond)
+// DWC X-axis position : { (Waveform peak timing from DWC Right ch) - (Waveform peak timing from DWC Left ch) } * (calibrated DWC x-axis slope value) + (calibrated DWC x-axis intercept value)
+// DWC Y-axis position : { (Waveform peak timing from DWC Up ch) - (Waveform peak timing from DWC Down ch) } * (calibrated DWC y-axis slope value) + (calibrated DWC y-axis intercept value)
+// Subtract x and y offset from calculated DWC x-axis and y-axis position to make mean value of DWC position plot aligns to center. That is, (0 mm, 0 mm) position.
+// x and y offset can be obtained from non-corrected DWC position plot's mean value.
 std::vector<float> getDWC1position(std::vector<float> dwc1Time, float xOffset = 0.f, float yOffset = 0.f) {
     static float dwc1horizontalSlope = -0.1740806676;
     static float dwc1horizontalOffset = -0.1680572999;
@@ -70,6 +90,10 @@ std::vector<float> getDWC2position(std::vector<float> dwc2Time, float xOffset = 
     return dwc2Position;
 }
 
+// Calculate DWC position using DWC waveform peak timing (timing == clock value)
+// To translate clock value to nanosecond : (clock * 25. / 1000.) == (nanosecond)
+// Clock values can be obtained from fast mode event's evt.timing() function
+// Other logics are same as above
 std::vector<float> getDWC1positionUsingClock(std::vector<float> dwc1Time) {
     static float dwc1horizontalSlope = -0.1740806676;
     static float dwc1horizontalOffset = -0.1680572999;
@@ -104,6 +128,7 @@ std::vector<float> getDWC2positionUsingClock(std::vector<float> dwc2Time) {
     return dwc2Position;
 }
 
+// From non-corrected DWC 2D histogram, get its x and y position mean value and return them
 std::vector<float> getDWCoffset(TH2D* dwcHist) {
     float xOffset = dwcHist->GetMean(1);
     float yOffset = dwcHist->GetMean(2);
@@ -115,22 +140,13 @@ std::vector<float> getDWCoffset(TH2D* dwcHist) {
     return dwcOffset;
 }
 
-std::vector<float> getPedCorrectedWaveform(std::vector<short> waveform, float ped) {
-    std::vector<float> correctedWaveform;
-
-    for (float binContent : waveform) {
-        float binValue = ped - binContent;
-        correctedWaveform.push_back(binValue);
-    }
-
-    return correctedWaveform;
-}
-
 //////////////////////////////////////////////////////////////////////////////
 // For PID
 //////////////////////////////////////////////////////////////////////////////
 
-bool dwcCorrelationPID(std::vector<float> dwc1_correctedPosition, std::vector<float> dwc2_correctedPosition, float threshold = 2.f) {
+// Give DWC1, 2 correlation constraint, threshold set to 1.5mm for default.
+// This means particle entering DWC1 at (x mm, y mm) should enter DWC2 at (x +- 1.5 mm, y +-1.5 mm)
+bool dwcCorrelationPID(std::vector<float> dwc1_correctedPosition, std::vector<float> dwc2_correctedPosition, float threshold = 1.5f) {
     bool passed = false;
 
     float x_diff = std::abs( dwc1_correctedPosition.at(0) - dwc2_correctedPosition.at(0) );
@@ -142,37 +158,10 @@ bool dwcCorrelationPID(std::vector<float> dwc1_correctedPosition, std::vector<fl
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// For Leading edge method
-//////////////////////////////////////////////////////////////////////////////
-float getLinearInterpolatedX(float y, float x1, float x2, float y1, float y2) {
-    return (x1 + (x2 - x1) * (y - y1) / (y2 - y1));
-}
-
-float getLinearInterpolatedY(float x, float x1, float x2, float y1, float y2) {
-    return (y1 + (y2 - y1) * (x - x1) / (x2 - x1));
-}
-
-float getLeadingEdgeBin(std::vector<float> pedCorrected_waveform, float fraction = 0.2f) {
-    float threshold = (float)*std::max_element(pedCorrected_waveform.begin()+1, pedCorrected_waveform.end()-23) * fraction;
-    int peakBin = std::max_element(pedCorrected_waveform.begin()+1, pedCorrected_waveform.end()-23) - pedCorrected_waveform.begin();
-
-    for (int bin = peakBin; bin > 0; bin--) {
-        if (pedCorrected_waveform.at(bin) < threshold) {
-            return getLinearInterpolatedX(threshold, bin, bin+1, pedCorrected_waveform.at(bin), pedCorrected_waveform.at(bin+1));
-        }
-    }
-
-    return 0.f;
-}
-
-float getLeadingEdgeTime(std::vector<float> pedCorrected_waveform, float fraction = 0.2f) {
-    float bin = getLeadingEdgeBin(pedCorrected_waveform, fraction);
-    return getTime(bin);
-}
-
-//////////////////////////////////////////////////////////////////////////////
 // print progress
 //////////////////////////////////////////////////////////////////////////////
+
+// Simple utility to print progress
 void printProgress(const int currentStep, const int totalStep) {
     float progress = (float) currentStep / totalStep;
     int barWidth = 70;

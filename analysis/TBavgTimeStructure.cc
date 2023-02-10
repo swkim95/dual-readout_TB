@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     utility.loading("/gatbawi/dream/mapping/mapping_Aug2022TB.root");
     utility.loadped( ("/gatbawi/dream/ped/mean/Run" + std::to_string(runNum) + "_pedestalHist_mean.root").c_str() );
     // Get DWC info
-    TFile* dwcFile = TFile::Open(("/u/user/swkim/data_certificate/dual-readout_TB/dwc/dwc_Run_" + std::to_string(runNum) + ".root").c_str());
+    TFile* dwcFile = TFile::Open(("./dwc/dwc_Run_" + std::to_string(runNum) + ".root").c_str());
     // Get channel IDs
     TBcid pscid = utility.getcid(TBdetector::detid::preshower);
     TBcid mucid = utility.getcid(TBdetector::detid::muon);
@@ -288,15 +288,7 @@ int main(int argc, char** argv) {
     TH2D* dwc_corrected_y_corr_PID = new TH2D("dwc_corrected_y_corr_PID", "dwc_corrected_y_corr_PID;mm;mm;events", 480, -120., 120., 480, -120., 120.);
     
     // Load data using TChain
-    TChain* evtChain = new TChain("events");
-    for (int fn = 0; fn < 50; fn++) {
-        std::string fileName = "ntuple_Run_" + std::to_string(runNum) + "_Wave_" + std::to_string(fn) + ".root";
-        std::string filePath = "/gatbawi/dream/ntuple/waveform/Run_"  + std::to_string(runNum) + "/" + fileName;
-        if ( !access(filePath.c_str(), F_OK) ){
-            std::cout << fn << " Ntuple file added to TChain : " << filePath << std::endl;
-            evtChain->Add(filePath.c_str());
-        }
-    }
+    TChain* evtChain = getNtupleChain(runNum);
     TBevt<TBwaveform>* anEvt = new TBevt<TBwaveform>(); 
     evtChain->SetBranchAddress("TBevt", &anEvt);
 
@@ -308,7 +300,7 @@ int main(int argc, char** argv) {
         std::cout << "Will process maximum " << std::to_string(totalEntry) << " events" << std::endl;
     }
 
-    // DWC offset
+    // DWC offset for DWC correlation cut
     TH2D* dwc1_pos   = (TH2D*) dwcFile->Get("dwc1_pos");
     TH2D* dwc2_pos   = (TH2D*) dwcFile->Get("dwc2_pos");
     TH2D* dwc_x_corr = (TH2D*) dwcFile->Get("dwc_x_corr");
@@ -624,7 +616,7 @@ int main(int argc, char** argv) {
     float survivedEntries = (float) psHist->GetEntries() / 1000.;
     float scale = 1. / survivedEntries;
 
-    std::string outFile = "/u/user/swkim/data_certificate/dual-readout_TB/analysis/avgTimeStructure/avg_Run_" + std::to_string(runNum) + ".root";
+    std::string outFile = "./avgTimeStructure/avg_Run_" + std::to_string(runNum) + ".root";
     TFile* outputRoot = new TFile(outFile.c_str(), "RECREATE");
     outputRoot->cd();
 

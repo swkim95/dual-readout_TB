@@ -45,19 +45,11 @@ int main(int argc, char** argv) {
     // Preparing histograms
     TH2D* dwc1_pos = new TH2D("dwc1_pos", "dwc1_pos;mm;mm;events", 480, -120., 120., 480, -120., 120.);
     TH2D* dwc2_pos = new TH2D("dwc2_pos", "dwc2_pos;mm;mm;events", 480, -120., 120., 480, -120., 120.);
-    TH2D* dwc_x_corr = new TH2D("dwc_x_corr", "dwc_x_corr;mm;mm;events", 480, -120., 120., 480, -120., 120.);
-    TH2D* dwc_y_corr = new TH2D("dwc_y_corr", "dwc_y_corr;mm;mm;events", 480, -120., 120., 480, -120., 120.);
+    TH2D* dwc_x_corr = new TH2D("dwc_x_corr", "dwc_x_corr;DWC1_X_mm;DWC2_X_mm;events", 480, -120., 120., 480, -120., 120.);
+    TH2D* dwc_y_corr = new TH2D("dwc_y_corr", "dwc_y_corr;DWC1_Y_mm;DWC2_Y_mm;events", 480, -120., 120., 480, -120., 120.);
 
     // Load data using TChain
-    TChain* evtChain = new TChain("events");
-    for (int fn = 0; fn < 50; fn++) {
-        std::string fileName = "ntuple_Run_" + std::to_string(runNum) + "_Wave_" + std::to_string(fn) + ".root";
-        std::string filePath = "/gatbawi/dream/ntuple/waveform/Run_"  + std::to_string(runNum) + "/" + fileName;
-        if ( !access(filePath.c_str(), F_OK) ){
-            std::cout << fn << " Ntuple file added to TChain : " << filePath << std::endl;
-            evtChain->Add(filePath.c_str());
-        }
-    }
+    TChain* evtChain = getNtupleChain(runNum);
     TBevt<TBwaveform>* anEvt = new TBevt<TBwaveform>(); 
     evtChain->SetBranchAddress("TBevt", &anEvt);
 
@@ -111,14 +103,7 @@ int main(int argc, char** argv) {
         if( iEvt % 1000 == 0 ) printProgress(iEvt + 1, totalEntry);
     }
 
-    // std::vector<float> dwc1_offset = getDWCoffset(dwc1_pos);
-    // std::vector<float> dwc2_offset = getDWCoffset(dwc2_pos);
-    // std::cout << "DWC 1 X offset : " << dwc1_offset.at(0) << std::endl;
-    // std::cout << "DWC 1 Y offset : " << dwc1_offset.at(1) << std::endl;
-    // std::cout << "DWC 2 X offset : " << dwc2_offset.at(0) << std::endl;
-    // std::cout << "DWC 2 Y offset : " << dwc2_offset.at(1) << std::endl;
-
-    std::string outFile = "/u/user/swkim/data_certificate/dual-readout_TB/dwc/dwc_Run_" + std::to_string(runNum) + ".root";
+    std::string outFile = "./dwc/dwc_Run_" + std::to_string(runNum) + ".root";
     TFile* outputRoot = new TFile(outFile.c_str(), "RECREATE");
     outputRoot->cd();
 
