@@ -8,8 +8,8 @@
 #include <stdexcept>
 #include <boost/python.hpp>
 
-#include "TFile.h"
-#include "TTree.h"
+#include <TFile.h>
+#include <TTree.h>
 
 void TBvalid::drawRatio(TH1F* num, TH1F* den, const std::string histName, const std::string outDir) {
     TH1F* h_fromNtuple = num;
@@ -45,7 +45,7 @@ void TBvalid::drawRatio(TH1F* num, TH1F* den, const std::string histName, const 
     h_fromNtuple->SetMarkerStyle(21);
     h_fromNtuple->SetMarkerSize(0.6);
     h_fromNtuple->SetMarkerColor(kRed);
-    h_fromNtuple->Draw("sames&p");
+    h_fromNtuple->Draw("Hist&sames&p");
     p1->Update();
     TPaveStats* stat_Ntuple_C = (TPaveStats*)p1->GetPrimitive("stats");
     stat_Ntuple_C->SetName("Ntuple_C");
@@ -160,7 +160,7 @@ TH1F* TBvalid::drawWaveHistFromData(TBcid cid, const std::string histName) {
 
 TH1F* TBvalid::drawWaveHistFromData(const std::vector<std::vector<std::string>>& datList, TBcid cid, const std::string histName) {
     std::cout << "Drawing waveform histogram from data files..." << std::endl;
-    TH1F* hist = new TH1F(histName.c_str(), histName.c_str(), 1024, 0., 1024.);
+    TH1F* hist = new TH1F(histName.c_str(), histName.c_str(), 1000, 0., 1000.);
     hist->SetLineWidth(2);
     hist->SetLineColor(kBlue);
 
@@ -213,8 +213,8 @@ TH1F* TBvalid::drawWaveHistFromData(const std::vector<std::vector<std::string>>&
         auto dataFromData = anEvtFromData->data(cid);
         auto waveform = dataFromData.waveform();
 
-        for (int bin = 0; bin < waveform.size(); bin++){
-            hist->Fill(bin, waveform[bin]);
+        for (int bin = 0; bin < 1000; bin++){
+            hist->Fill(bin, waveform[bin+1]);
         }
 
         for (unsigned MID = 0; MID < numOfMID; MID++) entryCounted[MID]++;
@@ -229,31 +229,20 @@ TH1F* TBvalid::drawWaveHistFromData(const std::vector<std::vector<std::string>>&
     return hist;
 }
 
-TH1F* TBvalid::drawFastHistFromData(TBcid cid, const std::string histName, bool drawTiming) {
+TH1F* TBvalid::drawFastHistFromData(TBcid cid, const std::string histName) {
     if (this->datList_.size() == 0) {
         std::cout << "No data list found, please use setDataList() first" << std::endl;
         return NULL;
     }
-    TH1F* ptr = drawFastHistFromData(this->datList_, cid, histName, drawTiming);
+    TH1F* ptr = drawFastHistFromData(this->datList_, cid, histName);
     return ptr;
 }
 
-TH1F* TBvalid::drawFastHistFromData(const std::vector<std::vector<std::string>>& datList, TBcid cid, const std::string histName, bool drawTiming) {
+TH1F* TBvalid::drawFastHistFromData(const std::vector<std::vector<std::string>>& datList, TBcid cid, const std::string histName) {
     std::cout << "Drawing fastmode histogram from data files..." << std::endl;
-    TH1F* hist = new TH1F(histName.c_str(), histName.c_str(), 1024, -1024., 40960);
+    TH1F* hist = new TH1F(histName.c_str(), histName.c_str(), 1000, -1000., 50000);
     hist->SetLineWidth(2);
     hist->SetLineColor(kBlue);
-
-    TButility utils = TButility();
-    TBcid cidPS = utils.getcid(TBdetector::detid::preshower);
-    bool isPS = ( (cidPS.mid() == cid.mid()) && (cidPS.channel() == cid.channel()) );
-
-    if (drawTiming) {
-        hist->GetXaxis()->SetRangeUser(-1024., 40960 * 10);
-    }
-    else if (isPS) {
-        hist->GetXaxis()->SetRangeUser(-1024., 40960 * 4);
-    }
 
     const int numOfMID = 15;
     const int numOfFiles = datList.size();
@@ -303,8 +292,7 @@ TH1F* TBvalid::drawFastHistFromData(const std::vector<std::vector<std::string>>&
 
         auto dataFromData = anEvtFromData->data(cid);
 
-        if (drawTiming) hist->Fill(dataFromData.timing());
-        else hist->Fill(dataFromData.adc());
+        hist->Fill(dataFromData.adc());
 
         for (unsigned MID = 0; MID < numOfMID; MID++) entryCounted[MID]++;
         printProgress( (iEvt + 1) , totalEntry);
@@ -316,6 +304,257 @@ TH1F* TBvalid::drawFastHistFromData(const std::vector<std::vector<std::string>>&
     // c->SaveAs(("./" + histName + ".png").c_str());
 
     return hist;
+}
+
+TH1F* TBvalid::drawWaveHistFromNtuple(TBcid cid, const std::string histName) {
+    if (this->ntupleList_.size() == 0) {
+        std::cout << "No ntuple list found, please use setNtupleList() first" << std::endl;
+        return NULL;
+    }
+    TH1F* ptr = drawWaveHistFromNtuple(this->ntupleList_, cid, histName);
+    return ptr;
+}
+
+TH1F* TBvalid::drawWaveHistFromNtuple(const std::vector<std::string>& ntupleList, TBcid cid, const std::string histName) {
+    std::cout << "Drawing waveform histogram from ntuples..." << std::endl;
+    TH1F* hist = new TH1F(histName.c_str(), histName.c_str(), 1000, 0., 1000.);
+    hist->SetLineWidth(2);
+    hist->SetLineColor(kRed);
+
+    const int numOfMID = 15;
+    const int numOfFiles = ntupleList.size();
+
+    TChain* fileChain = new TChain("events");
+    for (std::string fName : ntupleList) {
+        fileChain->Add(fName.c_str());
+    }
+    int totalEntry = fileChain->GetEntries();
+    std::cout << "Total entries : " << totalEntry << std::endl;
+
+    TBevt<TBwaveform>* anEvtFromNtuple = new TBevt<TBwaveform>();
+    fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
+
+    for (unsigned iEvt = 0; iEvt < totalEntry; ++iEvt) {
+        fileChain->GetEntry(iEvt);
+        auto dataFromNtuple = anEvtFromNtuple->data(cid);
+        auto waveform = dataFromNtuple.waveform();
+
+        for (int bin = 0; bin < 1000; ++bin) {
+            hist->Fill(bin, waveform[bin+1]);
+        }
+
+        printProgress(iEvt +1, totalEntry);
+    }
+    TCanvas* c = new TCanvas("","");
+    c->cd();
+    hist->Draw("Hist");
+    // c->SaveAs(("./" + histName + ".png").c_str());
+
+    return hist;
+}
+
+TH1F* TBvalid::drawFastHistFromNtuple(TBcid cid, const std::string histName) {
+    if (this->ntupleList_.size() == 0) {
+        std::cout << "No ntuple list found, please use setNtupleList() first" << std::endl;
+        return NULL;
+    }
+    TH1F* ptr = drawFastHistFromNtuple(this->ntupleList_, cid, histName);
+    return ptr;
+}
+
+TH1F* TBvalid::drawFastHistFromNtuple(const std::vector<std::string>& ntupleList, TBcid cid, const std::string histName) {
+    std::cout << "Drawing fastmode histogram from ntuples..." << std::endl;
+    TH1F* hist = new TH1F(histName.c_str(), histName.c_str(), 1000, -1000., 50000);
+    hist->SetLineWidth(2);
+    hist->SetLineColor(kRed);
+
+    const int numOfMID = 15;
+    const int numOfFiles = ntupleList.size();
+
+    TChain* fileChain = new TChain("events");
+    for (std::string fName : ntupleList) {
+        fileChain->Add(fName.c_str());
+    }
+    int totalEntry = fileChain->GetEntries();
+    std::cout << "Total entries : " << totalEntry << std::endl;
+
+    TBevt<TBfastmode>* anEvtFromNtuple = new TBevt<TBfastmode>();
+    fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
+
+    for (unsigned iEvt = 0; iEvt < totalEntry; ++iEvt) {
+        fileChain->GetEntry(iEvt);
+        auto dataFromNtuple = anEvtFromNtuple->data(cid);
+
+        hist->Fill(dataFromNtuple.adc());
+
+        printProgress(iEvt +1, totalEntry);
+    }
+    TCanvas* c = new TCanvas("","");
+    c->cd();
+    hist->Draw("Hist");
+    // c->SaveAs(("./" + histName + ".png").c_str());
+
+    return hist;
+}
+
+void TBvalid::checkFastTrigNum() {
+    std::cout << "Checking trigger numbers..." << std::endl;
+    const int numOfMID = 15;
+
+    auto ntupleList = this->ntupleList_;
+
+    const int numOfFiles = ntupleList.size();
+
+    TChain* fileChain = new TChain("events");
+    for (std::string fName : ntupleList) {
+        fileChain->Add(fName.c_str());
+    }
+    int totalEntry = fileChain->GetEntries();
+    std::cout << "Total entries : " << totalEntry << std::endl;
+
+    std::vector<int> prev_tcb_trig_number(numOfMID);
+    
+    TBevt<TBfastmode>* anEvtFromNtuple = new TBevt<TBfastmode>();
+
+    fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
+    // Start event loop
+    int err_count = 0;
+    int war_count = 0;
+    for (unsigned iEvt = 0; iEvt < totalEntry; ++iEvt) {
+        fileChain->GetEntry(iEvt);
+
+        std::vector<TBmid<TBfastmode>> MIDs(numOfMID);
+        for (unsigned MID = 0; MID < numOfMID; ++MID) {
+            MIDs[MID] = anEvtFromNtuple->mid(MID);
+        }
+
+        // Validation on TCB trig # begin
+        for (unsigned MID = 0; MID < numOfMID; ++MID) {
+
+            TBmid<TBfastmode> refMID = MIDs[0];
+
+            // Compare TCB trig # between all MIDs
+            if (refMID.tcb_trig_number() != MIDs[MID].tcb_trig_number()) {
+                err_count++;
+                std::cout << std::endl;
+                std::cout << "[ERROR] : TCB trig number mismatch between MID 1 and MID : " << MID+1  << " in event # : " << iEvt << std::endl;
+                std::cout << "[ERROR] : trig # of MID 1 : " << refMID.tcb_trig_number() << std::endl;
+                std::cout << "[ERROR] : trig # of MID " << MID+1 << " : " << MIDs[MID].tcb_trig_number() << std::endl;
+            }
+            // Should be previous tcb # < current tcb # (if not, evt order mixed!)
+            if ( (iEvt != 0) && (prev_tcb_trig_number[MID] >= MIDs[MID].tcb_trig_number()) ) {
+                err_count++;
+                std::cout << std::endl;
+                std::cout << "[ERROR] : Mixed order in TCB trig number found for MID : " << MID+1 << " in event # : " << iEvt << std::endl;
+                std::cout << "[ERROR] : Previous tcb trig number : " << prev_tcb_trig_number[MID] << std::endl;
+                std::cout << "[ERROR] : Current tcb trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
+            }
+            // Should be previous tcb # + 1 == current tcb # for fastmode (if not, missing some events)
+            if ( (iEvt != 0) && ((prev_tcb_trig_number[MID] + 1) != MIDs[MID].tcb_trig_number()) ) {
+                war_count++;
+                std::cout << std::endl;
+                std::cout << "[Warning] : Missing TCB trig number found in MID : " << MID+1 << " in event # : " << iEvt << std::endl;
+                std::cout << "[Warning] : Previous tcb trig number : " << prev_tcb_trig_number[MID] << std::endl;
+                std::cout << "[Warning] : Current tcb trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
+            }
+            // Sould be tcb # = local # (if not, one of TCB or DAQ malfunction might happened)
+            if (MIDs[MID].tcb_trig_number() != MIDs[MID].local_trig_number()) {
+                err_count++;
+                std::cout << std::endl;
+                std::cout << "[ERROR] : Mismatch between local trig number and TCB trig number found in MID : " << MID+1 << " in event # : " << iEvt << std::endl;
+                std::cout << "[ERROR] : TCB trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
+                std::cout << "[ERROR] : DAQ trig number : " << MIDs[MID].local_trig_number() << std::endl;
+            }
+
+            prev_tcb_trig_number[MID] = MIDs[MID].tcb_trig_number();
+        }
+
+        printProgress(iEvt +1, totalEntry);
+    }
+            
+    if (! (err_count || war_count) ) {
+        std::cout << "No error or warning found, good to proceed" << std::endl;
+    }
+}
+
+void TBvalid::checkWaveTrigNum() {
+    std::cout << "Checking trigger numbers..." << std::endl;
+    const int numOfMID = 15;
+
+    auto ntupleList = this->ntupleList_;
+
+    const int numOfFiles = ntupleList.size();
+
+    TChain* fileChain = new TChain("events");
+    for (std::string fName : ntupleList) {
+        fileChain->Add(fName.c_str());
+    }
+    int totalEntry = fileChain->GetEntries();
+    std::cout << "Total entries : " << totalEntry << std::endl;
+
+    std::vector<int> prev_tcb_trig_number(numOfMID);
+    
+    TBevt<TBwaveform>* anEvtFromNtuple = new TBevt<TBwaveform>();
+
+    fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
+    // Start event loop
+    int err_count = 0;
+    int war_count = 0;
+    for (unsigned iEvt = 0; iEvt < totalEntry; ++iEvt) {
+        fileChain->GetEntry(iEvt);
+
+        std::vector<TBmid<TBfastmode>> MIDs(numOfMID);
+        for (unsigned MID = 0; MID < numOfMID; ++MID) {
+            MIDs[MID] = anEvtFromNtuple->mid(MID);
+        }
+
+        // Validation on TCB trig # begin
+        for (unsigned MID = 0; MID < numOfMID; ++MID) {
+
+            TBmid<TBfastmode> refMID = MIDs[0];
+
+            // Compare TCB trig # between all MIDs
+            if (refMID.tcb_trig_number() != MIDs[MID].tcb_trig_number()) {
+                err_count++;
+                std::cout << std::endl;
+                std::cout << "[ERROR] : TCB trig number mismatch between MID 1 and MID : " << MID+1  << " in event # : " << iEvt << std::endl;
+                std::cout << "[ERROR] : trig # of MID 1 : " << refMID.tcb_trig_number() << std::endl;
+                std::cout << "[ERROR] : trig # of MID " << MID+1 << " : " << MIDs[MID].tcb_trig_number() << std::endl;
+            }
+            // Should be previous tcb # < current tcb # (if not, evt order mixed!)
+            if ( (iEvt != 0) && (prev_tcb_trig_number[MID] >= MIDs[MID].tcb_trig_number()) ) {
+                err_count++;
+                std::cout << std::endl;
+                std::cout << "[ERROR] : Mixed order in TCB trig number found for MID : " << MID+1 << " in event # : " << iEvt << std::endl;
+                std::cout << "[ERROR] : Previous tcb trig number : " << prev_tcb_trig_number[MID] << std::endl;
+                std::cout << "[ERROR] : Current tcb trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
+            }
+            // Should be previous tcb # + 1 == current tcb # for fastmode (if not, missing some events)
+            // if ( (iEvt != 0) && ((prev_tcb_trig_number[MID] + 1) != MIDs[MID].tcb_trig_number()) ) {
+            //     war_count++;
+            //     std::cout << std::endl;
+            //     std::cout << "[Warning] : Missing TCB trig number found in MID : " << MID+1 << " in event # : " << iEvt << std::endl;
+            //     std::cout << "[Warning] : Previous tcb trig number : " << prev_tcb_trig_number[MID] << std::endl;
+            //     std::cout << "[Warning] : Current tcb trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
+            // }
+            // Sould be tcb # = local # (if not, one of TCB or DAQ malfunction might happened)
+            if (MIDs[MID].tcb_trig_number() != MIDs[MID].local_trig_number()) {
+                err_count++;
+                std::cout << std::endl;
+                std::cout << "[ERROR] : Mismatch between local trig number and TCB trig number found in MID : " << MID+1 << " in event # : " << iEvt << std::endl;
+                std::cout << "[ERROR] : TCB trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
+                std::cout << "[ERROR] : DAQ trig number : " << MIDs[MID].local_trig_number() << std::endl;
+            }
+
+            prev_tcb_trig_number[MID] = MIDs[MID].tcb_trig_number();
+        }
+
+        printProgress(iEvt +1, totalEntry);
+    }
+            
+    if (! (err_count || war_count) ) {
+        std::cout << "No error or warning found, good to proceed" << std::endl;
+    }
 }
 
 bool TBvalid::py_simpleValidFast(TBcid cid) {
@@ -515,23 +754,16 @@ bool TBvalid::simpleValidWave(const std::vector<std::vector<std::string>>& datLi
         auto dataFromNtuple = anEvtFromNtuple->data(cid);
 
         std::vector<short> waveFromData = dataFromData.waveform();
-        waveFromData.pop_back();
         std::vector<short> waveFromNtuple = dataFromNtuple.waveform();
-        waveFromNtuple.pop_back();
         
-        // Compare contents
-        if ( waveFromData != waveFromNtuple ) {
-            errorCount++;
-            std::cout << "[ERROR] Waveform from data does not match with ntuple Evt : " << iEvt << std::endl;
+        for (int i = 1; i < 1001; i++) {
+            if (dataFromData.waveform()[i] != dataFromNtuple.waveform()[i]) {
+                errorCount++;
+                std::cout << "[ERROR] Waveform from data does not match with ntuple Evt : " << iEvt << " bin : " << i << std::endl;
+                std::cout << "Data wave : " << dataFromData.waveform()[i] << std::endl;
+                std::cout << "Ntuple wave : " << dataFromNtuple.waveform()[i] << std::endl;
+            }
         }
-        // for (int i = 1; i < dataFromData.waveform().size() - 1; i++) {
-        //     if (dataFromData.waveform()[i] != dataFromNtuple.waveform()[i]) {
-        //         errorCount++;
-        //         std::cout << "[ERROR] Waveform from data does not match with ntuple Evt : " << iEvt << " bin : " << i << std::endl;
-        //         std::cout << "Data wave : " << dataFromData.waveform()[i] << std::endl;
-        //         std::cout << "Ntuple wave : " << dataFromNtuple.waveform()[i] << std::endl;
-        //     }
-        // }
 
         printProgress( (iEvt + 1) , totalEntryfromData);
     }
@@ -543,269 +775,6 @@ bool TBvalid::simpleValidWave(const std::vector<std::vector<std::string>>& datLi
     else {
         std::cout << "[OK] Event content well matched in MID : " << cid.mid() << " Ch : " << cid.channel() << std::endl;
         return true;
-    }
-}
-
-TH1F* TBvalid::drawWaveHistFromNtuple(TBcid cid, const std::string histName) {
-    if (this->ntupleList_.size() == 0) {
-        std::cout << "No ntuple list found, please use setNtupleList() first" << std::endl;
-        return NULL;
-    }
-    TH1F* ptr = drawWaveHistFromNtuple(this->ntupleList_, cid, histName);
-    return ptr;
-}
-
-TH1F* TBvalid::drawWaveHistFromNtuple(const std::vector<std::string>& ntupleList, TBcid cid, const std::string histName) {
-    std::cout << "Drawing waveform histogram from ntuples..." << std::endl;
-    TH1F* hist = new TH1F(histName.c_str(), histName.c_str(), 1024, 0., 1024.);
-    hist->SetLineWidth(2);
-    hist->SetLineColor(kRed);
-
-    const int numOfMID = 15;
-    const int numOfFiles = ntupleList.size();
-
-    TChain* fileChain = new TChain("events");
-    for (std::string fName : ntupleList) {
-        fileChain->Add(fName.c_str());
-    }
-    int totalEntry = fileChain->GetEntries();
-    std::cout << "Total entries : " << totalEntry << std::endl;
-
-    TBevt<TBwaveform>* anEvtFromNtuple = new TBevt<TBwaveform>();
-    fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
-
-    for (unsigned iEvt = 0; iEvt < totalEntry; ++iEvt) {
-        fileChain->GetEntry(iEvt);
-        auto dataFromNtuple = anEvtFromNtuple->data(cid);
-        auto waveform = dataFromNtuple.waveform();
-
-        for (int bin = 0; bin < waveform.size(); ++bin) {
-            hist->Fill(bin, waveform[bin]);
-        }
-
-        printProgress(iEvt +1, totalEntry);
-    }
-    TCanvas* c = new TCanvas("","");
-    c->cd();
-    hist->Draw("Hist");
-    // c->SaveAs(("./" + histName + ".png").c_str());
-
-    return hist;
-}
-
-TH1F* TBvalid::drawFastHistFromNtuple(TBcid cid, const std::string histName, bool drawTiming) {
-    if (this->ntupleList_.size() == 0) {
-        std::cout << "No ntuple list found, please use setNtupleList() first" << std::endl;
-        return NULL;
-    }
-    TH1F* ptr = drawFastHistFromNtuple(this->ntupleList_, cid, histName, drawTiming);
-    return ptr;
-}
-
-TH1F* TBvalid::drawFastHistFromNtuple(const std::vector<std::string>& ntupleList, TBcid cid, const std::string histName, bool drawTiming) {
-    std::cout << "Drawing fastmode histogram from ntuples..." << std::endl;
-    TH1F* hist = new TH1F(histName.c_str(), histName.c_str(), 1024, -1024., 40960);
-    hist->SetLineWidth(2);
-    hist->SetLineColor(kRed);
-
-    TButility utils = TButility();
-    TBcid cidPS = utils.getcid(TBdetector::detid::preshower);
-    bool isPS = ( (cidPS.mid() == cid.mid()) && (cidPS.channel() == cid.channel()) );
-
-    if (drawTiming) {
-        hist->GetXaxis()->SetRangeUser(-1024., 40960 * 10);
-    }
-    else if (isPS) {
-        hist->GetXaxis()->SetRangeUser(-1024., 40960 * 4);
-    }
-
-    const int numOfMID = 15;
-    const int numOfFiles = ntupleList.size();
-
-    TChain* fileChain = new TChain("events");
-    for (std::string fName : ntupleList) {
-        fileChain->Add(fName.c_str());
-    }
-    int totalEntry = fileChain->GetEntries();
-    std::cout << "Total entries : " << totalEntry << std::endl;
-
-    TBevt<TBfastmode>* anEvtFromNtuple = new TBevt<TBfastmode>();
-    fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
-
-    for (unsigned iEvt = 0; iEvt < totalEntry; ++iEvt) {
-        fileChain->GetEntry(iEvt);
-        auto dataFromNtuple = anEvtFromNtuple->data(cid);
-
-        if (drawTiming) hist->Fill(dataFromNtuple.timing());
-        else hist->Fill(dataFromNtuple.adc());
-
-        printProgress(iEvt +1, totalEntry);
-    }
-    TCanvas* c = new TCanvas("","");
-    c->cd();
-    hist->Draw("Hist");
-    // c->SaveAs(("./" + histName + ".png").c_str());
-
-    return hist;
-}
-
-void TBvalid::checkFastTrigNum() {
-    std::cout << "Checking trigger numbers..." << std::endl;
-    const int numOfMID = 15;
-
-    auto ntupleList = this->ntupleList_;
-
-    const int numOfFiles = ntupleList.size();
-
-    TChain* fileChain = new TChain("events");
-    for (std::string fName : ntupleList) {
-        fileChain->Add(fName.c_str());
-    }
-    int totalEntry = fileChain->GetEntries();
-    std::cout << "Total entries : " << totalEntry << std::endl;
-
-    std::vector<int> prev_tcb_trig_number(numOfMID);
-    
-    TBevt<TBfastmode>* anEvtFromNtuple = new TBevt<TBfastmode>();
-
-    fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
-    // Start event loop
-    int err_count = 0;
-    int war_count = 0;
-    for (unsigned iEvt = 0; iEvt < totalEntry; ++iEvt) {
-        fileChain->GetEntry(iEvt);
-
-        std::vector<TBmid<TBfastmode>> MIDs(numOfMID);
-        for (unsigned MID = 0; MID < numOfMID; ++MID) {
-            MIDs[MID] = anEvtFromNtuple->mid(MID);
-        }
-
-        // Validation on TCB trig # begin
-        for (unsigned MID = 0; MID < numOfMID; ++MID) {
-
-            TBmid<TBfastmode> refMID = MIDs[0];
-
-            // Compare TCB trig # between all MIDs
-            if (refMID.tcb_trig_number() != MIDs[MID].tcb_trig_number()) {
-                err_count++;
-                std::cout << std::endl;
-                std::cout << "[ERROR] : TCB trig number mismatch between MID 1 and MID : " << MID+1  << " in event # : " << iEvt << std::endl;
-                std::cout << "[ERROR] : trig # of MID 1 : " << refMID.tcb_trig_number() << std::endl;
-                std::cout << "[ERROR] : trig # of MID " << MID+1 << " : " << MIDs[MID].tcb_trig_number() << std::endl;
-            }
-            // Should be previous tcb # < current tcb # (if not, evt order mixed!)
-            if ( (iEvt != 0) && (prev_tcb_trig_number[MID] >= MIDs[MID].tcb_trig_number()) ) {
-                err_count++;
-                std::cout << std::endl;
-                std::cout << "[ERROR] : Mixed order in TCB trig number found for MID : " << MID+1 << " in event # : " << iEvt << std::endl;
-                std::cout << "[ERROR] : Previous tcb trig number : " << prev_tcb_trig_number[MID] << std::endl;
-                std::cout << "[ERROR] : Current tcb trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
-            }
-            // Should be previous tcb # + 1 == current tcb # for fastmode (if not, missing some events)
-            if ( (iEvt != 0) && ((prev_tcb_trig_number[MID] + 1) != MIDs[MID].tcb_trig_number()) ) {
-                war_count++;
-                std::cout << std::endl;
-                std::cout << "[Warning] : Missing TCB trig number found in MID : " << MID+1 << " in event # : " << iEvt << std::endl;
-                std::cout << "[Warning] : Previous tcb trig number : " << prev_tcb_trig_number[MID] << std::endl;
-                std::cout << "[Warning] : Current tcb trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
-            }
-            // Sould be tcb # = local # (if not, one of TCB or DAQ malfunction might happened)
-            if (MIDs[MID].tcb_trig_number() != MIDs[MID].local_trig_number()) {
-                err_count++;
-                std::cout << std::endl;
-                std::cout << "[ERROR] : Mismatch between local trig number and TCB trig number found in MID : " << MID+1 << " in event # : " << iEvt << std::endl;
-                std::cout << "[ERROR] : TCB trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
-                std::cout << "[ERROR] : DAQ trig number : " << MIDs[MID].local_trig_number() << std::endl;
-            }
-
-            prev_tcb_trig_number[MID] = MIDs[MID].tcb_trig_number();
-        }
-
-        printProgress(iEvt +1, totalEntry);
-    }
-            
-    if (! (err_count || war_count) ) {
-        std::cout << "No error or warning found, good to proceed" << std::endl;
-    }
-}
-
-void TBvalid::checkWaveTrigNum() {
-    std::cout << "Checking trigger numbers..." << std::endl;
-    const int numOfMID = 15;
-
-    auto ntupleList = this->ntupleList_;
-
-    const int numOfFiles = ntupleList.size();
-
-    TChain* fileChain = new TChain("events");
-    for (std::string fName : ntupleList) {
-        fileChain->Add(fName.c_str());
-    }
-    int totalEntry = fileChain->GetEntries();
-    std::cout << "Total entries : " << totalEntry << std::endl;
-
-    std::vector<int> prev_tcb_trig_number(numOfMID);
-    
-    TBevt<TBwaveform>* anEvtFromNtuple = new TBevt<TBwaveform>();
-
-    fileChain->SetBranchAddress("TBevt", &anEvtFromNtuple);
-    // Start event loop
-    int err_count = 0;
-    int war_count = 0;
-    for (unsigned iEvt = 0; iEvt < totalEntry; ++iEvt) {
-        fileChain->GetEntry(iEvt);
-
-        std::vector<TBmid<TBfastmode>> MIDs(numOfMID);
-        for (unsigned MID = 0; MID < numOfMID; ++MID) {
-            MIDs[MID] = anEvtFromNtuple->mid(MID);
-        }
-
-        // Validation on TCB trig # begin
-        for (unsigned MID = 0; MID < numOfMID; ++MID) {
-
-            TBmid<TBfastmode> refMID = MIDs[0];
-
-            // Compare TCB trig # between all MIDs
-            if (refMID.tcb_trig_number() != MIDs[MID].tcb_trig_number()) {
-                err_count++;
-                std::cout << std::endl;
-                std::cout << "[ERROR] : TCB trig number mismatch between MID 1 and MID : " << MID+1  << " in event # : " << iEvt << std::endl;
-                std::cout << "[ERROR] : trig # of MID 1 : " << refMID.tcb_trig_number() << std::endl;
-                std::cout << "[ERROR] : trig # of MID " << MID+1 << " : " << MIDs[MID].tcb_trig_number() << std::endl;
-            }
-            // Should be previous tcb # < current tcb # (if not, evt order mixed!)
-            if ( (iEvt != 0) && (prev_tcb_trig_number[MID] >= MIDs[MID].tcb_trig_number()) ) {
-                err_count++;
-                std::cout << std::endl;
-                std::cout << "[ERROR] : Mixed order in TCB trig number found for MID : " << MID+1 << " in event # : " << iEvt << std::endl;
-                std::cout << "[ERROR] : Previous tcb trig number : " << prev_tcb_trig_number[MID] << std::endl;
-                std::cout << "[ERROR] : Current tcb trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
-            }
-            // Should be previous tcb # + 1 == current tcb # for fastmode (if not, missing some events)
-            // if ( (iEvt != 0) && ((prev_tcb_trig_number[MID] + 1) != MIDs[MID].tcb_trig_number()) ) {
-            //     war_count++;
-            //     std::cout << std::endl;
-            //     std::cout << "[Warning] : Missing TCB trig number found in MID : " << MID+1 << " in event # : " << iEvt << std::endl;
-            //     std::cout << "[Warning] : Previous tcb trig number : " << prev_tcb_trig_number[MID] << std::endl;
-            //     std::cout << "[Warning] : Current tcb trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
-            // }
-            // Sould be tcb # = local # (if not, one of TCB or DAQ malfunction might happened)
-            if (MIDs[MID].tcb_trig_number() != MIDs[MID].local_trig_number()) {
-                err_count++;
-                std::cout << std::endl;
-                std::cout << "[ERROR] : Mismatch between local trig number and TCB trig number found in MID : " << MID+1 << " in event # : " << iEvt << std::endl;
-                std::cout << "[ERROR] : TCB trig number : " << MIDs[MID].tcb_trig_number() << std::endl;
-                std::cout << "[ERROR] : DAQ trig number : " << MIDs[MID].local_trig_number() << std::endl;
-            }
-
-            prev_tcb_trig_number[MID] = MIDs[MID].tcb_trig_number();
-        }
-
-        printProgress(iEvt +1, totalEntry);
-    }
-            
-    if (! (err_count || war_count) ) {
-        std::cout << "No error or warning found, good to proceed" << std::endl;
     }
 }
 

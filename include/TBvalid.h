@@ -34,10 +34,10 @@ class TBvalid {
         void checkRatio(TH1F* den, TH1F* num, const std::string histName, const std::string outDir);
         void drawRatio(TH1F* den, TH1F* num, const std::string histName, const std::string outDir);
 
-        TH1F* drawFastHistFromData(TBcid cid, const std::string histName, bool drawTiming);
-        TH1F* drawFastHistFromData(const std::vector<std::vector<std::string>>& datList, TBcid cid, const std::string histName, bool drawTiming);
-        TH1F* drawFastHistFromNtuple(TBcid cid, const std::string histName, bool drawTiming);
-        TH1F* drawFastHistFromNtuple(const std::vector<std::string>& ntupleList, TBcid cid, const std::string histName, bool drawTiming);
+        TH1F* drawFastHistFromData(TBcid cid, const std::string histName);
+        TH1F* drawFastHistFromData(const std::vector<std::vector<std::string>>& datList, TBcid cid, const std::string histName);
+        TH1F* drawFastHistFromNtuple(TBcid cid, const std::string histName);
+        TH1F* drawFastHistFromNtuple(const std::vector<std::string>& ntupleList, TBcid cid, const std::string histName);
 
         TH1F* drawWaveHistFromData(TBcid cid, const std::string histName);
         TH1F* drawWaveHistFromData(const std::vector<std::vector<std::string>>& datList, TBcid cid, const std::string histName);
