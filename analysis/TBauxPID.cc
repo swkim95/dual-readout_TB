@@ -29,12 +29,12 @@ int main(int argc, char** argv) {
     utility.loading("/gatbawi/dream/mapping/mapping_Aug2022TB.root");
     utility.loadped( ("/gatbawi/dream/ped/mean/Run" + std::to_string(runNum) + "_pedestalHist_mean.root").c_str() );
     // Get DWC info
-    TFile* dwcFile = TFile::Open(("./dwc/dwc_Run_" + std::to_string(runNum) + ".root").c_str());
+    TFile* dwcFile = TFile::Open(("/u/user/swkim/pre-exercise/dual-readout_TB/analysis/dwc/dwc_Run_" + std::to_string(runNum) + ".root").c_str());
     if (dwcFile->IsOpen()) {
-        std::cout << "Opened DWC info : ./dwc/dwc_Run_" + std::to_string(runNum) + ".root" << std::endl;
+        std::cout << "Opened DWC info : /u/user/swkim/pre-exercise/dual-readout_TB/analysis/dwc/dwc_Run_" + std::to_string(runNum) + ".root" << std::endl;
     }
     else {
-        std::cout << "[ERROR] Failed to open DWC info : ./dwc/dwc_Run_" + std::to_string(runNum) + ".root" << std::endl;
+        std::cout << "[ERROR] Failed to open DWC info : /u/user/swkim/pre-exercise/dual-readout_TB/analysis/dwc/dwc_Run_" + std::to_string(runNum) + ".root" << std::endl;
         return 0;
     }
     // Get channel IDs
@@ -153,7 +153,7 @@ int main(int argc, char** argv) {
         muIntHist_PID->Fill(muIntADC);
     }
 
-    std::string outFile = "./auxPID/auxPID_Run_" + std::to_string(runNum) + ".root";
+    std::string outFile = "/u/user/swkim/pre-exercise/dual-readout_TB/analysis/auxPID/auxPID_Run_" + std::to_string(runNum) + ".root";
     TFile* outputRoot = new TFile(outFile.c_str(), "RECREATE");
     outputRoot->cd();
 

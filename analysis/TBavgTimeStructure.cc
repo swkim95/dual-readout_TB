@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     utility.loading("/gatbawi/dream/mapping/mapping_Aug2022TB.root");
     utility.loadped( ("/gatbawi/dream/ped/mean/Run" + std::to_string(runNum) + "_pedestalHist_mean.root").c_str() );
     // Get DWC info
-    TFile* dwcFile = TFile::Open(("./dwc/dwc_Run_" + std::to_string(runNum) + ".root").c_str());
+    TFile* dwcFile = TFile::Open(("/u/user/swkim/pre-exercise/dual-readout_TB/analysis/dwc/dwc_Run_" + std::to_string(runNum) + ".root").c_str());
     // Get channel IDs
     TBcid pscid = utility.getcid(TBdetector::detid::preshower);
     TBcid mucid = utility.getcid(TBdetector::detid::muon);
@@ -616,7 +616,7 @@ int main(int argc, char** argv) {
     float survivedEntries = (float) psHist->GetEntries() / 1000.;
     float scale = 1. / survivedEntries;
 
-    std::string outFile = "./avgTimeStructure/avg_Run_" + std::to_string(runNum) + ".root";
+    std::string outFile = "/u/user/swkim/pre-exercise/dual-readout_TB/analysis/avgTimeStructure/avg_Run_" + std::to_string(runNum) + ".root";
     TFile* outputRoot = new TFile(outFile.c_str(), "RECREATE");
     outputRoot->cd();
 

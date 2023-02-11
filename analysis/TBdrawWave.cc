@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
         std::cout << "Will process maximum " << std::to_string(totalEntry) << " events" << std::endl;
     }
 
-    std::string outFile = "./waveform/Waveform_Run_" + std::to_string(runNum) + ".root";
+    std::string outFile = "/u/user/swkim/pre-exercise/dual-readout_TB/analysis/waveform/Waveform_Run_" + std::to_string(runNum) + ".root";
     TFile* outputRoot = new TFile(outFile.c_str(), "RECREATE");
     outputRoot->cd();
 

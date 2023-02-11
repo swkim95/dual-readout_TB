@@ -29,12 +29,12 @@ int main(int argc, char** argv) {
     utility.loading("/gatbawi/dream/mapping/mapping_Aug2022TB.root");
     utility.loadped( ("/gatbawi/dream/ped/mean/Run" + std::to_string(runNum) + "_pedestalHist_mean.root").c_str() );
     // Get PID info
-    TFile* pidFile = TFile::Open(("./auxPID/auxPID_Run_" + std::to_string(runNum) + ".root").c_str());
+    TFile* pidFile = TFile::Open(("/u/user/swkim/pre-exercise/dual-readout_TB/analysis/auxPID/auxPID_Run_" + std::to_string(runNum) + ".root").c_str());
     if (pidFile->IsOpen()) {
-        std::cout << "Opened PID info : ./auxPID/auxPID_Run_" + std::to_string(runNum) + ".root" << std::endl;
+        std::cout << "Opened PID info : /u/user/swkim/pre-exercise/dual-readout_TB/analysis/auxPID/auxPID_Run_" + std::to_string(runNum) + ".root" << std::endl;
     }
     else {
-        std::cout << "[ERROR] Failed to open PID info : ./auxPID/auxPID_Run_" + std::to_string(runNum) + ".root" << std::endl;
+        std::cout << "[ERROR] Failed to open PID info : /u/user/swkim/pre-exercise/dual-readout_TB/analysis/auxPID/auxPID_Run_" + std::to_string(runNum) + ".root" << std::endl;
         return 0;
     }
     // Get channel IDs
@@ -418,7 +418,7 @@ int main(int argc, char** argv) {
 
     TCanvas* c = new TCanvas();
 
-    std::string outFile = "./intADC/intADC_Run_" + std::to_string(runNum) + ".root";
+    std::string outFile = "/u/user/swkim/pre-exercise/dual-readout_TB/analysis/intADC/intADC_Run_" + std::to_string(runNum) + ".root";
     TFile* outputRoot = new TFile(outFile.c_str(), "RECREATE");
     outputRoot->cd();
 

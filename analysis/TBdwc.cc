@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
         if( iEvt % 1000 == 0 ) printProgress(iEvt + 1, totalEntry);
     }
 
-    std::string outFile = "./dwc/dwc_Run_" + std::to_string(runNum) + ".root";
+    std::string outFile = "/u/user/swkim/pre-exercise/dual-readout_TB/analysis/dwc/dwc_Run_" + std::to_string(runNum) + ".root";
     TFile* outputRoot = new TFile(outFile.c_str(), "RECREATE");
     outputRoot->cd();
 
