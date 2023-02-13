@@ -2,10 +2,9 @@
 
 # To compile TBxxx.cc, type the commnand below
 # 
-# bash compile.sh TBxxx
+# bash compile.sh TBxxx.cc (or TBxxx for short)
 #
-# Notice that you have to drop ".cc"
-# This will generate TBxxx.exe file
+# This will generate TBxxx.exe executiable
 
 ext=${1##*.}
 fname=`basename ${1} .${ext}`
