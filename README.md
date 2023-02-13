@@ -105,10 +105,7 @@ export PYTHONPATH=$PYTHONPATH:<path_to_install>/lib64 # or lib based on your arc
 ---
 ## 5) Useful links
 
-[2022 TB @ CERN main documentation page](https://github.com)
-
-[Run list](https://github.com)
-
-[DAQ log](https://google.com)
-
-[Mapping info](https://github.com)
+[2022 TB @ CERN main documentation page](https://github.com)\
+[Run list](https://github.com)\
+[DAQ log](https://google.com)\
+[Mapping info](https://github.com)\
