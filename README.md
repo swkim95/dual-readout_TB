@@ -2,10 +2,6 @@
 
 FWcore for TB data analysis
 
-<dl>
-  <span style="color:blue">some *blue* text</span>
-</dl>
-
 ## Dependencies
 * ROOT
 * python3
