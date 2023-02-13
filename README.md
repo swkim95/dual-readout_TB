@@ -2,12 +2,14 @@
 
 FWcore for TB data analysis and pre-exercise scripts for 2023 Feb DRC workshop @GWNU
 
+---
 ## 1) Dependencies
 * ROOT
 * python3
 * boost::python
->__Note__ All the dependencies can be sourced on KNU / iDream server using CVMFS
+>__Note__ All the dependencies can be sourced on KNU / idream server using CVMFS
 
+---
 ## 2) Installation manual
 #### How to compile framework
 ```sh
@@ -44,6 +46,7 @@ e.g.) source compile.sh TBdrawWave # This will generate TBdrawWave.exe
 e.g.) ./TBdrawWave.exe 702 1000 
 ```
 
+---
 ## 3) Pre-exercise
 ### Suggested runs for pre-exercise
 
@@ -54,6 +57,8 @@ e.g.) ./TBdrawWave.exe 702 1000
 |**700**|      20      |    e+    |     M1T3     | MCP-PMT |     **50036**     |     **49984**     |
 |**704**|      20      |    e+    |     M1T4     |   PMT   |     **50020**     |     **49984**     |
 >__Note__ For more details about run, see the run list documentation and DAQ log in below links.
+[Run list](https://github.com)
+[DAQ log](https://google.com)
 
 ### Pre-exercise instructions
 #### 1. Make ntuple from raw data, and validate them
@@ -68,7 +73,7 @@ e.g.) ./TBdrawWave.exe 702 1000
 
 #### 6. Draw integrated ADC plot of module PMT
 
-
+---
 ## 4) Troubleshooting
 #### g++ error while compiling anaylsis scripts 
 ![image desc](./doc/g%2B%2B_error.png)
@@ -96,3 +101,10 @@ e.g.) ./TBdrawWave.exe 702 1000
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_install>/lib64 # or lib based on your architecture
 export PYTHONPATH=$PYTHONPATH:<path_to_install>/lib64 # or lib based on your architecture
 ```
+
+---
+## 5) Useful links
+[2022 TB @ CERN main documentation page](https://github.com)
+[Run list](https://github.com)
+[DAQ log](https://google.com)
+[Mapping info](https://github.com)
