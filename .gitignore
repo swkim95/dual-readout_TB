@@ -40,6 +40,9 @@
 *.pdf
 *.log
 
+# except for doc folder for README.md
+!doc/
+
 # install & build forders
 install/
 build/
