@@ -57,7 +57,7 @@ e.g.) ./TBdrawWave.exe 702 1000
 |**700**|      20      |    e+    |     M1T3     | MCP-PMT |     **50036**     |     **49984**     |
 |**704**|      20      |    e+    |     M1T4     |   PMT   |     **50020**     |     **49984**     |
 >__Note__ For more details about run, see the run list documentation and DAQ log in below links.
-[Run list](https://github.com)
+[Run list](https://github.com)\
 [DAQ log](https://google.com)
 
 ### Pre-exercise instructions
