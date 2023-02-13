@@ -1,6 +1,8 @@
 # dual-readout_TB
 
 FWcore for TB data analysis
+>__Note__ For more details about run, see the run list documentation and DAQ log in below links.
+
 
 ## Dependencies
 * ROOT
