@@ -41,7 +41,7 @@
 *.log
 
 # except for doc folder for README.md
-!doc/
+!doc/*.png
 
 # install & build forders
 install/
