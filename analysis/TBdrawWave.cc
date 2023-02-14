@@ -126,6 +126,6 @@ int main(int argc, char** argv) {
         c->cd();
         M1T1SWaveformHist->Draw("Hist"); c->SaveAs( ( "./waveform/S/s_" + std::to_string(iEvt) + ".png").c_str() );
 
-        if ( (iEvt % 1000) == 0 ) printProgress(iEvt + 1, totalEntry);
+        printProgress(iEvt + 1, totalEntry);
     }
 }

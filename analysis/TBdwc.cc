@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
         dwc_x_corr->Fill(dwc1_x_position, dwc2_x_position);
         dwc_y_corr->Fill(dwc1_y_position, dwc2_y_position);
 
-        if( iEvt % 1000 == 0 ) printProgress(iEvt + 1, totalEntry);
+        printProgress(iEvt + 1, totalEntry);
     }
 
     // Saving the DWC position & correlation plots in root file in ./dwc directory.

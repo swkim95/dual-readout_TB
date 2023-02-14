@@ -47,7 +47,6 @@ int main(int argc, char** argv) {
     // Load mapping info
     TButility utility = TButility();
     utility.loading("/gatbawi/dream/mapping/mapping_Aug2022TB.root");
-    utility.loadped( ("/gatbawi/dream/ped/mean/Run" + std::to_string(runNum) + "_pedestalHist_mean.root").c_str() );
     
     // Get DWC center info (offsets) for DWC correlation cut
     TFile* dwcFile = TFile::Open(("./dwc/dwc_Run_" + std::to_string(runNum) + ".root").c_str());
@@ -63,7 +62,7 @@ int main(int argc, char** argv) {
     dwc2_cid.push_back(TBcid(1,31)); // D
     TH2D* dwc1_pos   = (TH2D*) dwcFile->Get("dwc1_pos");
     TH2D* dwc2_pos   = (TH2D*) dwcFile->Get("dwc2_pos");
-    std::vector<float> dwc1_offset = getDWCoffset(dwc1_pos);
+    std::vector<float> dwc1_offset = getDWCoffset(dwc1_pos); // dwc1_offset.at(0) == dwc1 X offset from (0, 0), dwc1_offset.at(1) == dwc1 Y offset from (0, 0)
     std::vector<float> dwc2_offset = getDWCoffset(dwc2_pos);
 
     // Preparing histograms
@@ -91,13 +90,13 @@ int main(int argc, char** argv) {
     // Get channel IDs
     TBcid pscid = ; // Your answer here
 
-    // Get pedestals
+    // Get pedestals : pedestals are needed to calculate integrated ADC
     utility.loadped( ("/gatbawi/dream/ped/mean/Run" + std::to_string(runNum) + "_pedestalHist_mean.root").c_str() );
     float psPed = utility.retrievePed(pscid);
 
     // Evt Loop
     for (int iEvt = 0; iEvt < totalEntry; iEvt++) {
-        if(iEvt % 1000 == 0) printProgress(iEvt + 1, totalEntry);
+        printProgress(iEvt + 1, totalEntry);
 
         evtChain->GetEntry(iEvt);
         
@@ -156,15 +155,16 @@ int main(int argc, char** argv) {
     TFile* outputRoot = new TFile(outFile.c_str(), "RECREATE");
     outputRoot->cd();
 
-    // Fit function for fitting 1-mip peak of pre-shower detector
+    // ----------------------------------------------------------------------------------------------------------------------
+    // Exercise 3 : First, use the fit function with default range 9000 ~ 15000 to fit the 1-mip peak of pre-shower detector
+    //              Then, referring to README.md, find more proper fit function range to get better Chi2/NDF value
+    // ----------------------------------------------------------------------------------------------------------------------
+    // Using TF1, define gaussian fit function for fitting 1-mip peak of pre-shower detector
     // The range 9000~15000 need to be optimized to give best Chi2/NDF after fitting PS int. ADC
-    // Exercise 3 : Referring to README.md, find more proper fit function range using Chi2/NDF value
-    
-    TF1* psFitFunc = new TF1("psFitFunc", "gaus", 9000, 15000);
-    // TF1* psFitFunc = new TF1("psFitFunc", "gaus", , ); // Your answer here. Comment out the line above and use your fit function.
+    TF1* psFitFunc = new TF1("psFitFunc", "gaus", 8000, 18000); // Your answer here, change the range after checking the fit result
     
     psIntHist->Write();
-    psIntHist_PID->Fit("psFitFunc", "R");
+    psIntHist_PID->Fit("psFitFunc", "R"); // histogram->Fit("fit function name", "R"); will fit the histogram with corresponding fit function 
     psIntHist_PID->Write();
     psFitFunc->Write();
 

@@ -14,6 +14,7 @@ For any questions / feedback, please contact : sungwon.kim@cern.ch
       - [How to run each analysis executable](#how-to-run-each-analysis-executable)
   - [3) Pre-exercise](#3-pre-exercise)
     - [Suggested runs for pre-exercise](#suggested-runs-for-pre-exercise)
+    - [Data paths in iDream server](#data-paths-in-idream-server)
     - [Pre-exercise instructions](#pre-exercise-instructions)
       - [1. Make ntuple from raw data, and validate them](#1-make-ntuple-from-raw-data-and-validate-them)
       - [2. Draw single channel waveform from ntuples](#2-draw-single-channel-waveform-from-ntuples)
@@ -98,6 +99,24 @@ e.g.) ./TBdrawWave.exe 702 1000
 [Run list](https://docs.google.com/spreadsheets/d/1NsoHoRA0b18hth2E2DQ_U_OjmwK_VHr3/edit?usp=sharing&ouid=117548372861877042914&rtpof=true&sd=true)\
 [DAQ log](https://docs.google.com/spreadsheets/d/1Cfoetfduc2Tb8mBhA6O9rtuxci5SGBaZw9uualKWfUA/edit#gid=262558796)
 
+### Data paths in iDream server
+```sh
+# Raw data (.dat files) path
+/gatbawi/dream/data/HDD_Run_$(run_number)_validated/
+
+# fastmode ntuples path
+/gatbawi/dream/ntuple/fastmode/Run_$(run_number)/
+
+# waveform mode ntuples path
+/gatbawi/dream/ntuple/waveform/Run_$(run_number)/
+
+# pedestal root file path
+/gatbawi/dream/ped/mean/Run$(run_number)_pedestalHist_mean.root
+
+# mapping information root file path
+/gatbawi/dream/mapping/mapping_Aug2022TB.root
+```
+
 ### Pre-exercise instructions
 
 >__Warning__ All instructions are based on Run 702. Students who are not familiar with DRC analysis are recommended to use the same Run 702 data for pre-exercise.
@@ -106,7 +125,7 @@ e.g.) ./TBdrawWave.exe 702 1000
 
 - Ntupler and ntuple validator are available in the `/dual-readout_TB/ntupler` directory
     ![img desc](./doc/ntuple_dir.png)
-- `TBntuplize.py` : Read raw data (.dat format) and create ntuples (.root format)
+- `TBntupler.py` : Read raw data (.dat format) and create ntuples (.root format)
 - `TBvalidator.py` : Read both raw data and ntulple, and compare their contents to make sure everything is well copied to ntuple
 
 - **How to run ntupler**
@@ -244,6 +263,15 @@ e.g.) ./TBdrawWave.exe 702 1000
     - How to draw average time structure of pre-shower detector and module PMT
     - How to determine integration range from average time structure
 
+- DWC correlation cut explanation
+    - For beams to properly enter into our DRC module, beam should be little (or not) tilted so that it can enter similar position in DWC 1 and DWC 2 with respect to their center position (== x, y position mean value of each DWC1 & DWC2)
+    - That means, events in the green area of below picture will represent the beams entering into our DRC module
+    ![dwc corr explain](./doc/proper_dwc.png)
+    - On the other hand, beams escaping (tilted too much) out module will reside in the red area of the picture below 
+    ![dwc corr explain](./doc/not_proper_dwc.png)
+    - Therefore, we'll have to exclude events in the red area of the picture to remove unwanted events
+    - One way to give such DWC correlation cut is explained in `TBavgTimeStructure.cc`
+
 - In this exercise, we'll use `TBavgTimeStructure.cc` script in `/dual-readout_TB/analysis`
 
 - Detailed instructions are available in `TBavgTimeStructure.cc` script itself
@@ -273,8 +301,102 @@ e.g.) ./TBdrawWave.exe 702 1000
     - One can see that events that are far from DWC 1 centers are almost all excluded by applying correlation cut
 
 #### 5. Draw integrated ADC plot of pre-shower detector, and decide PID cut
+- Before starting this exercise
+  1. Please make sure DWC root file is created in `/dual-readout_TB/analysis/dwc/` directory
+  2. Please create `auxPID/` directory in `/dual-readout_TB/analysis/`
+    ```sh
+    # In dual-readout_TB/analysis/ directory, create auxPID
+    mkdir auxPID
+    ```
+
+- In this exercise, students will learn
+    - How to get pedestal value of each channels
+    - How to get integrated ADC plot of pre-shower detector
+    - How to gaussian fit the int. ADC plot to get proper fit result
+    - How to get pre-shower PID cut
+
+- How to draw integrated ADC
+  - First, we subtract the waveform ADC value from pedestal value
+  - For example, if one subtract the pre-shower waveform (blue line) from pedestal (red line), one will get histogram like the right plot
+    |     PS waveform and pedestal      |          Pedestal - PS waveform          |
+    | :-------------------------------: | :--------------------------------------: |
+    | ![ps wave](./doc/ps_waveform.png) | ![ps int pid](./doc/ps_ped_wave_int.png) |
+  - Here, we sum up (Ped - ADC) values in integration range (blue range in the right plot) to get integrated ADC value
+
+- In this exercise, we'll use `TBauxPID.cc` script in `/dual-readout_TB/analysis`
+
+- Detailed instructions are available in `TBauxPID.cc` script itself
+
+- After filling all your answers in `TBauxPID.cc`, compile it and run it to save root file with pre-shower int. ADC plot
+    ```sh
+    # For example, after finishing exercises in TBauxPID.cc, to draw integrated ADC plot of pre-shower and gaussian fit function from Run702 ntuple
+    bash compile.sh TBauxPID.cc
+    ./TBauxPID.exe 702 -1
+    ```
+
+- This will create average time structure plots and store them in root file at `/dual-readout_TB/analysis/auxPID/` directory
+    ![dwc file](./doc/pid_root.png)
+
+- Created auxPID root file will contain integrated ADC plot of pre-shower detector before and after DWC correlation cut like the following
+    | PS int. ADC before DWC cut  |      PS int. ADC after DWC cut      |
+    | :-------------------------: | :---------------------------------: |
+    | ![ps int](./doc/ps_int.png) | ![ps int pid](./doc/ps_int_pid.png) |
+
+    - One can see that events at int.ADC ~ 0 (== pedestals) are removed after DWC cut
+    - First peak after the pedestal peak is 1-mip peak (peak at ~13000)
+    - One need to gaussian fit this 1-mip peak, and use its mean value * 2.5 as pre-shower PID cut
+    - Actually, this is not the proper way to set pre-shower PID cut but just preliminary result
+    - Detailed description about how to get the proper PID cut will be provided in workshop
+
+- Using default fit range (8000 ~ 18000), 1-mip peak fitting function will look like following
+    |          PS 1-mip gaus fit          |           PS 1-mip gaus fit zoomed            |
+    | :---------------------------------: | :-------------------------------------------: |
+    | ![ps fit](./doc/ps_int_pid_fit.png) | ![ps fit zoom](./doc/ps_int_pid_fit_zoom.png) |
+    
+    - One can see the fitting function (red line) is not well matched with original histogram (blue line)
+    - This results in high Chi2/NDF value shown in the stat box (697.9/46 ~ 15)
+    - This is due to non-proper fit range
+    - For exercise, update the default fit range to more proper range, so that fit result gives better Chi2/NDF value than default result
+    ```cpp
+    // At line 164 of TBauxPID.cc
+    // Change 8000, 18000 into more proper range and check the fit result
+    TF1* psFitFunc = new TF1("psFitFunc", "gaus", 8000, 18000);
+    ```
 
 #### 6. Draw integrated ADC plot of module PMT
+- Before starting this exercise
+  1. Please make sure auxPID root file is created in `/dual-readout_TB/analysis/auxPID/` directory
+  2. Please create `intADC/` directory in `/dual-readout_TB/analysis/`
+    ```sh
+    # In dual-readout_TB/analysis/ directory, create intADC
+    mkdir intADC
+    ```
+
+- In this exercise, students will learn
+    - How to give both DWC correlation cut and pre-shower PID cut
+    - Draw module integrated ADC plot before and after DWC & PS cut
+
+- In this exercise, we'll use `TBintADC.cc` script in `/dual-readout_TB/analysis`
+
+- Detailed instructions are available in `TBintADC.cc` script itself
+
+- After filling all your answers in `TBintADC.cc`, compile it and run it to save root file with int. ADC of modules
+    ```sh
+    # For example, after finishing exercises in TBintADC.cc, to draw integrated ADC plot of modules from Run702 ntuple
+    bash compile.sh TBintADC.cc
+    ./TBintADC.exe 702 -1
+    ```
+
+- This will create average time structure plots and store them in root file at `/dual-readout_TB/analysis/intADC/` directory
+    ![int file](./doc/int_root.png)
+
+- Created intADC root file will contain integrated ADC plot of PS and DRC module before / after DWC & PS cut like the following
+    |  M1T1 C int. ADC before cut   |       M1T1 C int. ADC after cut       |
+    | :---------------------------: | :-----------------------------------: |
+    | ![m1t1 int](./doc/m1_int.png) | ![m1t1 int pid](./doc/m1_int_pid.png) |
+
+  - One can see that the events at 0 (pedestal peak) are removed after DWC & PS cut
+  - One can see that efficiency of Run 702 is ~ 12% (5858 evt out of 50028 evt survived)
 
 ---
 ## 4) Running on batch scheduler (HTcondor)

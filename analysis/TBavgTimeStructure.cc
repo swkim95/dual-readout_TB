@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
     TH2D* dwc2_pos   = (TH2D*) dwcFile->Get("dwc2_pos");
     // getDWCoffset : Function defined in function.cc for calculating DWC center position.
     // Receive dwc 2D histogram and returns offset vector >> vector[0] = DWC X offset, vector[1] = DWC Y offset
-    std::vector<float> dwc1_offset = getDWCoffset(dwc1_pos);
+    std::vector<float> dwc1_offset = getDWCoffset(dwc1_pos); // dwc1_offset.at(0) == dwc1 X offset from 0 mm, dwc1_offset.at(1) == dwc1 Y offset from 0 mm
     std::vector<float> dwc2_offset = getDWCoffset(dwc2_pos);
 
     // Evt Loop start
@@ -157,7 +157,9 @@ int main(int argc, char** argv) {
         std::vector<float> dwc2_correctedPosition = getDWC2position(dwc2_peakTime, dwc2_offset.at(0), dwc2_offset.at(1));
         dwc1_correctedPos->Fill(dwc1_correctedPosition.at(0), dwc1_correctedPosition.at(1));
         dwc2_correctedPos->Fill(dwc2_correctedPosition.at(0), dwc2_correctedPosition.at(1));
-        // For DWC correlation cut (1.5mm threshold), function defined in functions.cc
+        // For DWC correlation cut (1.5mm threshold), use function defined in functions.cc : dwcCorrelationPID()
+        // This function calculates the X and Y position difference between the two DWCs, and return true if both differences are smaller than 1.5 (mm)
+        // If not passed (== X or Y position difference of DWC 1 and 2 is larger than 1.5 mm), skip event loop
         if (! dwcCorrelationPID(dwc1_correctedPosition, dwc2_correctedPosition, 1.5f) ) continue;
         dwc1_correctedPos_PID->Fill(dwc1_correctedPosition.at(0), dwc1_correctedPosition.at(1));
         dwc2_correctedPos_PID->Fill(dwc2_correctedPosition.at(0), dwc2_correctedPosition.at(1));
