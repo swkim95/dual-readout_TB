@@ -18,6 +18,7 @@
 // For loading ntuples
 //////////////////////////////////////////////////////////////////////////////
 
+// Change "filePath" to your ntuple file path
 TChain* getNtupleChain(int runNumber) {
     TChain* evtChain = new TChain("events");
     for (int fn = 0; fn < 50; fn++) {
@@ -57,14 +58,14 @@ float getPeakTime(std::vector<short> waveform) {
 // Subtract x and y offset from calculated DWC x-axis and y-axis position to make mean value of DWC position plot aligns to center. That is, (0 mm, 0 mm) position.
 // x and y offset can be obtained from non-corrected DWC position plot's mean value.
 std::vector<float> getDWC1position(std::vector<float> dwc1Time, float xOffset = 0.f, float yOffset = 0.f) {
-    static float dwc1horizontalSlope = -0.1740806676;
-    static float dwc1horizontalOffset = -0.1680572999;
+    static float dwc1horizontalSlope = 0.1740806676;
+    static float dwc1horizontalOffset = 0.1680572999;
     static float dwc1VerticalSlope = -0.17424779576;
     static float dwc1VerticalOffset = -0.053701300;
 
     std::vector<float> dwc1Position;
 
-    float horizontalPos = -( ( (float)(dwc1Time.at(0) - dwc1Time.at(1)) * dwc1horizontalSlope ) + dwc1horizontalOffset ) - xOffset;
+    float horizontalPos =  ( (float)(dwc1Time.at(0) - dwc1Time.at(1)) * dwc1horizontalSlope ) + dwc1horizontalOffset - xOffset;
     float verticalPos = ( (float)(dwc1Time.at(2) - dwc1Time.at(3)) * dwc1VerticalSlope ) + dwc1VerticalOffset - yOffset;
 
     dwc1Position.push_back(horizontalPos);
@@ -74,14 +75,14 @@ std::vector<float> getDWC1position(std::vector<float> dwc1Time, float xOffset = 
 }
 
 std::vector<float> getDWC2position(std::vector<float> dwc2Time, float xOffset = 0.f, float yOffset = 0.f) {
-    static float dwc2horizontalSlope = -0.17257273;
-    static float dwc2horizontalOffset = -0.579927452;
+    static float dwc2horizontalSlope = 0.17257273;
+    static float dwc2horizontalOffset = 0.579927452;
     static float dwc2VerticalSlope = -0.1741203164;
     static float dwc2VerticalOffset = -0.278179655;
 
     std::vector<float> dwc2Position;
 
-    float horizontalPos = -( ( (float)(dwc2Time.at(0) - dwc2Time.at(1)) * dwc2horizontalSlope ) + dwc2horizontalOffset ) - xOffset;
+    float horizontalPos = ( (float)(dwc2Time.at(0) - dwc2Time.at(1)) * dwc2horizontalSlope ) + dwc2horizontalOffset - xOffset;
     float verticalPos = ( (float)(dwc2Time.at(2) - dwc2Time.at(3)) * dwc2VerticalSlope ) + dwc2VerticalOffset - yOffset;
 
     dwc2Position.push_back(horizontalPos);
