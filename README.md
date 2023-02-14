@@ -3,6 +3,32 @@
 FWcore for TB data analysis and pre-exercise scripts for [2023 Feb DRC workshop @GWNU](https://indico.cern.ch/event/1238214/timetable/?view=standard)
 
 ---
+- [dual-readout\_TB](#dual-readout_tb)
+  - [1) Dependencies](#1-dependencies)
+  - [2) Installation manual](#2-installation-manual)
+      - [How to compile framework](#how-to-compile-framework)
+      - [How to setup environment](#how-to-setup-environment)
+      - [How to compile each analysis script](#how-to-compile-each-analysis-script)
+      - [How to run each analysis executable](#how-to-run-each-analysis-executable)
+  - [3) Pre-exercise](#3-pre-exercise)
+    - [Suggested runs for pre-exercise](#suggested-runs-for-pre-exercise)
+    - [Pre-exercise instructions](#pre-exercise-instructions)
+      - [1. Make ntuple from raw data, and validate them](#1-make-ntuple-from-raw-data-and-validate-them)
+      - [2. Draw single channel waveform from ntuples](#2-draw-single-channel-waveform-from-ntuples)
+      - [3. Draw DWC position plot using waveform ntuples](#3-draw-dwc-position-plot-using-waveform-ntuples)
+      - [4. Draw average time structure of pre-shower detector and module PMT](#4-draw-average-time-structure-of-pre-shower-detector-and-module-pmt)
+      - [5. Draw integrated ADC plot of pre-shower detector, and decide PID cut](#5-draw-integrated-adc-plot-of-pre-shower-detector-and-decide-pid-cut)
+      - [6. Draw integrated ADC plot of module PMT](#6-draw-integrated-adc-plot-of-module-pmt)
+  - [4) Running on batch scheduler (HTcondor)](#4-running-on-batch-scheduler-htcondor)
+      - [1. Write HTcondor submission script : sub\_condor.sub](#1-write-htcondor-submission-script--sub_condorsub)
+      - [2. Write HTcondor execution script : exe\_condor.sh](#2-write-htcondor-execution-script--exe_condorsh)
+      - [3. Submit condor batch jobs using condor\_submit](#3-submit-condor-batch-jobs-using-condor_submit)
+  - [5) Troubleshooting](#5-troubleshooting)
+      - [g++ error while compiling anaylsis scripts](#g-error-while-compiling-anaylsis-scripts)
+      - [Library error while running executable (same solution as above)](#library-error-while-running-executable-same-solution-as-above)
+      - [Environment setup](#environment-setup)
+  - [6) Useful links](#6-useful-links)
+--- 
 ## 1) Dependencies
 * ROOT
 * python3
