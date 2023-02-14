@@ -1,11 +1,13 @@
 # dual-readout_TB
 
-FWcore for TB data analysis and pre-exercise scripts for [2023 Feb DRC workshop @GWNU](https://indico.cern.ch/event/1238214/timetable/?view=standard)
+FWcore for TB data analysis and pre-exercise scripts for [2023 Feb DRC workshop @GWNU](https://indico.cern.ch/event/1238214/timetable/?view=standard)\
+For any questions / feedback, please contact : sungwon.kim@cern.ch
 
 ---
 - [dual-readout\_TB](#dual-readout_tb)
   - [1) Dependencies](#1-dependencies)
   - [2) Installation manual](#2-installation-manual)
+      - [How to access to the server](#how-to-access-to-the-server)
       - [How to compile framework](#how-to-compile-framework)
       - [How to setup environment](#how-to-setup-environment)
       - [How to compile each analysis script](#how-to-compile-each-analysis-script)
@@ -28,6 +30,7 @@ FWcore for TB data analysis and pre-exercise scripts for [2023 Feb DRC workshop 
       - [Library error while running executable (same solution as above)](#library-error-while-running-executable-same-solution-as-above)
       - [Environment setup](#environment-setup)
   - [6) Useful links](#6-useful-links)
+
 --- 
 ## 1) Dependencies
 * ROOT
@@ -37,6 +40,14 @@ FWcore for TB data analysis and pre-exercise scripts for [2023 Feb DRC workshop 
 
 ---
 ## 2) Installation manual
+#### How to access to the server
+```sh
+# All the exercise codes are expected to be compiled & executed on iDream server
+# If you don't know your account/password, please contact sungwon.kim@cern.ch
+ssh <username>@idream.knu.ac.kr
+# enter password
+```
+
 #### How to compile framework
 ```sh
 # On your working directory, clone preEx_students branch
