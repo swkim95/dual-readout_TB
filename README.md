@@ -88,7 +88,7 @@ e.g.) ./TBdrawWave.exe 702 1000
     # For waveform mode, -fe 5000 is recommended. 5k waveform event ntuple will have size of ~2 GB per file
     [swkim@idream]$ python3 TBntupler.py -rn 702 -o ./ntuple -fe 5000
 
-    # This will create waveform ntuples with 5k events per file in ./ntuple/Run_702/Fast/ directory
+    # This will create fastmode ntuples with 100k events per file in ./ntuple/Run_702/Fast/ directory
     # For fastmode, -fe 100000 is recommended. 100k fastmode event ntuple will have size of ~200 MB per file
     [swkim@idream]$ python3 TBntupler.py -f -rn 702 -o ./ntuple -fe 100000
     ```
@@ -224,15 +224,16 @@ e.g.) ./TBdrawWave.exe 702 1000
     | :-------------------------: | :-------------------------------: |
     | ![PS avg](./doc/ps_avg.png) | ![m1t1s avg](./doc/m1t1s_avg.png) |
 
-    One can decide the integration range of each plot with this average time structure plots : 
-    Set range to cover peak position & peak waveform structure
+    - One can decide the integration range of each plot with this average time structure plots
+    - Find range that has size enough to cover peak waveform structure
+    - For example, we can set 220 ~ 390 bins as our integration range for the pre-shower detector.
 
 - DWC 1 position plot before / after correlation cut (1.5 mm threshold) is also stored in same root file
     |     DWC1 position before cut     |         DWC1 position after cut          |
     | :------------------------------: | :--------------------------------------: |
     | ![dwc1](./doc/dwc1_corr_pos.png) | ![dwc1 pid](./doc/dwc1_corr_pos_pid.png) |
     
-    One can see that events that are far from DWC 1 centers are almost all excluded by applying correlation cut
+    - One can see that events that are far from DWC 1 centers are almost all excluded by applying correlation cut
 
 #### 5. Draw integrated ADC plot of pre-shower detector, and decide PID cut
 
