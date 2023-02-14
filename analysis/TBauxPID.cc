@@ -18,61 +18,25 @@
 #include <TH2.h>
 #include <TCanvas.h>
 
+// This macro will draw integrated ADC of pre-shower detector, and fit 1-mip peak using gaussian function
+// This macro will store 1D histograms and fit functions in .root format
+
+// How to execute
+// On local or batch, run the following command :
+// ./TBauxPID.exe <run number> <max # of events to process>
+
 int main(int argc, char** argv) {
     gStyle->SetOptFit(1);
 
     int runNum = std::stoi(argv[1]);
     int maxEntry = std::stoi(argv[2]);
 
-    // Load mapping & pedestal info
-    TButility utility = TButility();
-    utility.loading("/gatbawi/dream/mapping/mapping_Aug2022TB.root");
-    utility.loadped( ("/gatbawi/dream/ped/mean/Run" + std::to_string(runNum) + "_pedestalHist_mean.root").c_str() );
-    // Get DWC info
-    TFile* dwcFile = TFile::Open(("/u/user/swkim/pre-exercise/dual-readout_TB/analysis/dwc/dwc_Run_" + std::to_string(runNum) + ".root").c_str());
-    if (dwcFile->IsOpen()) {
-        std::cout << "Opened DWC info : /u/user/swkim/pre-exercise/dual-readout_TB/analysis/dwc/dwc_Run_" + std::to_string(runNum) + ".root" << std::endl;
-    }
-    else {
-        std::cout << "[ERROR] Failed to open DWC info : /u/user/swkim/pre-exercise/dual-readout_TB/analysis/dwc/dwc_Run_" + std::to_string(runNum) + ".root" << std::endl;
-        return 0;
-    }
-    // Get channel IDs
-    TBcid pscid = utility.getcid(TBdetector::detid::preshower);
-    TBcid mucid = utility.getcid(TBdetector::detid::muon);
-
-    std::vector<TBcid> dwc1_cid;
-    dwc1_cid.push_back(TBcid(1,17)); // R
-    dwc1_cid.push_back(TBcid(1,19)); // L
-    dwc1_cid.push_back(TBcid(1,21)); // U
-    dwc1_cid.push_back(TBcid(1,23)); // D
-
-    std::vector<TBcid> dwc2_cid;
-    dwc2_cid.push_back(TBcid(1,25)); // R
-    dwc2_cid.push_back(TBcid(1,27)); // L
-    dwc2_cid.push_back(TBcid(1,29)); // U
-    dwc2_cid.push_back(TBcid(1,31)); // D
-
-    // Get pedestals
-    float psPed = utility.retrievePed(pscid);
-    float muPed = utility.retrievePed(mucid);
-
-    // Preparing histograms
-    TH1F* psIntHist = new TH1F("psIntADC", "psIntADC;IntADC;evt", 1000, -5000., 200000.);
-    TH1F* psIntHist_PID = new TH1F("psIntADC_PID", "psIntADC_PID;IntADC;evt", 1000, -5000., 200000.);
-
-    TH1F* muIntHist = new TH1F("muIntADC", "muIntADC;IntADC;evt", 1000, -10000., 50000.);
-    TH1F* muIntHist_PID = new TH1F("muIntADC_PID", "muIntADC_PID;IntADC;evt", 1000, -10000., 50000.);
-
-    TH2D* dwc1_correctedPos = new TH2D("dwc1_correctedPos", "dwc1_correctedPos;mm;mm;events", 480, -120., 120., 480, -120., 120.);
-    TH2D* dwc2_correctedPos = new TH2D("dwc2_correctedPos", "dwc2_correctedPos;mm;mm;events", 480, -120., 120., 480, -120., 120.);
-
-    // Load data using TChain
+    // Load ntuples using TChain. Need to change "getNtupleChain()" in function.cc to set proper path to your ntuples
     TChain* evtChain = getNtupleChain(runNum);
     TBevt<TBwaveform>* anEvt = new TBevt<TBwaveform>(); 
     evtChain->SetBranchAddress("TBevt", &anEvt);
 
-    // Check total # of events
+    // Check total # of events to process
     int totalEntry = evtChain->GetEntries();
     std::cout << "Total entries : " << totalEntry << std::endl;
     if ( (maxEntry > 0) && (maxEntry < totalEntry) ) {
@@ -80,20 +44,64 @@ int main(int argc, char** argv) {
         std::cout << "Will process maximum " << std::to_string(totalEntry) << " events" << std::endl;
     }
 
-    // Get DWC offset
+    // Load mapping info
+    TButility utility = TButility();
+    utility.loading("/gatbawi/dream/mapping/mapping_Aug2022TB.root");
+    utility.loadped( ("/gatbawi/dream/ped/mean/Run" + std::to_string(runNum) + "_pedestalHist_mean.root").c_str() );
+    
+    // Get DWC center info (offsets) for DWC correlation cut
+    TFile* dwcFile = TFile::Open(("./dwc/dwc_Run_" + std::to_string(runNum) + ".root").c_str());
+    std::vector<TBcid> dwc1_cid;
+    dwc1_cid.push_back(TBcid(1,17)); // R
+    dwc1_cid.push_back(TBcid(1,19)); // L
+    dwc1_cid.push_back(TBcid(1,21)); // U
+    dwc1_cid.push_back(TBcid(1,23)); // D
+    std::vector<TBcid> dwc2_cid;
+    dwc2_cid.push_back(TBcid(1,25)); // R
+    dwc2_cid.push_back(TBcid(1,27)); // L
+    dwc2_cid.push_back(TBcid(1,29)); // U
+    dwc2_cid.push_back(TBcid(1,31)); // D
     TH2D* dwc1_pos   = (TH2D*) dwcFile->Get("dwc1_pos");
     TH2D* dwc2_pos   = (TH2D*) dwcFile->Get("dwc2_pos");
     std::vector<float> dwc1_offset = getDWCoffset(dwc1_pos);
     std::vector<float> dwc2_offset = getDWCoffset(dwc2_pos);
+
+    // Preparing histograms
+    TH1F* psIntHist = new TH1F("psIntADC", "psIntADC;IntADC;evt", 1000, -5000., 200000.);
+    TH1F* psIntHist_PID = new TH1F("psIntADC_PID", "psIntADC_PID;IntADC;evt", 1000, -5000., 200000.);
+    TH2D* dwc1_correctedPos = new TH2D("dwc1_correctedPos", "dwc1_correctedPos;mm;mm;events", 480, -120., 120., 480, -120., 120.);
+    TH2D* dwc2_correctedPos = new TH2D("dwc2_correctedPos", "dwc2_correctedPos;mm;mm;events", 480, -120., 120., 480, -120., 120.);
+
+    /*
+    To get integrated ADC, we must define integration range
+    From previous exercise, we decided to use bin 220 ~ 390 for pre-shower detector
+    Next we subtract waveform from pedestal, and sum all the ADC values in integral range
+    
+    Pedestals are already measured & stored in pedestal root file
+    One can load pedestal information as follows :
+    utility.loadped( ("/gatbawi/dream/ped/mean/Run" + std::to_string(runNum) + "_pedestalHist_mean.root").c_str() );
+
+    To get pedestal value of specific channel from pedestal root file, one can use : utility.retrievePed(TBcid cid)
+    For example, to get pedestal value of pre-shower detector, one can do :
+    float ps_ped = utility.retrievePed(ps_Cid);
+    where ps_Cid is the pre-shower detector channel ID
+    */
+
+    // Exercise 1 : Get pre-shower cid
+    // Get channel IDs
+    TBcid pscid = ; // Your answer here
+
+    // Get pedestals
+    utility.loadped( ("/gatbawi/dream/ped/mean/Run" + std::to_string(runNum) + "_pedestalHist_mean.root").c_str() );
+    float psPed = utility.retrievePed(pscid);
 
     // Evt Loop
     for (int iEvt = 0; iEvt < totalEntry; iEvt++) {
         if(iEvt % 1000 == 0) printProgress(iEvt + 1, totalEntry);
 
         evtChain->GetEntry(iEvt);
-        TBwaveform psData = anEvt->data(pscid);
-        TBwaveform muData = anEvt->data(mucid);
-
+        
+        // Getting DWC peak timing for DWC correlation cut
         std::vector<TBwaveform> dwc1_data;
         for (TBcid cid : dwc1_cid) {
             dwc1_data.push_back(anEvt->data(cid));
@@ -102,10 +110,6 @@ int main(int argc, char** argv) {
         for (TBcid cid : dwc2_cid) {
             dwc2_data.push_back(anEvt->data(cid));
         }
-
-        std::vector<short> psWaveform = psData.waveform();
-        std::vector<short> muWaveform = muData.waveform();
-
         std::vector< std::vector<short> > dwc1_waveform;
         for (TBwaveform data : dwc1_data) {
             dwc1_waveform.push_back(data.waveform());
@@ -114,7 +118,6 @@ int main(int argc, char** argv) {
         for (TBwaveform data : dwc2_data) {
             dwc2_waveform.push_back(data.waveform());
         }
-
         std::vector<float> dwc1_peakTime;
         for (std::vector<short> waveform : dwc1_waveform) {
             dwc1_peakTime.push_back(getPeakTime(waveform));
@@ -123,53 +126,47 @@ int main(int argc, char** argv) {
         for (std::vector<short> waveform : dwc2_waveform) {
             dwc2_peakTime.push_back(getPeakTime(waveform));
         }
-
         std::vector<float> dwc1_correctedPosition = getDWC1position(dwc1_peakTime, dwc1_offset.at(0), dwc1_offset.at(1));
         std::vector<float> dwc2_correctedPosition = getDWC2position(dwc2_peakTime, dwc2_offset.at(0), dwc2_offset.at(1));
         dwc1_correctedPos->Fill(dwc1_correctedPosition.at(0), dwc1_correctedPosition.at(1));
         dwc2_correctedPos->Fill(dwc2_correctedPosition.at(0), dwc2_correctedPosition.at(1));
 
-        // PS Int. ADC
+        // Exercise 2 : Using pre-shower cid, get its waveform
+        TBwaveform psData = ; // Your answer here
+        std::vector<short> psWaveform = ; // Your answer here
+
+        // To get integrated ADC, we subtract each pre-shower waveform bin value from pre-shower pedestals, and sum them up
         float psIntADC = 0.f;
-        for (int bin = 220; bin < 390; bin++) {
+        for (int bin = 220; bin < 390; bin++) { // Recall that integral range is [220, 390)
             int waveformBin = bin + 1;
             psIntADC += psPed - psWaveform[waveformBin];
         }
-        // MC Int. ADC
-        float muIntADC = 0.f;
-        for (int bin = 840; bin < 960; bin++) {
-            int waveformBin = bin + 1;
-            muIntADC += muPed - muWaveform[waveformBin];
-        }
-        // PS, MC Int. ADC plot before PID
+
+        // PS Int. ADC plot before PID
         psIntHist->Fill(psIntADC);
-        muIntHist->Fill(muIntADC);
     
-        // For DWC PID
+        // For DWC correlation cut
         if (! dwcCorrelationPID(dwc1_correctedPosition, dwc2_correctedPosition, 1.5f) ) continue;
 
-        // PS, MC Int. ADC plot after PID
+        // PS Int. ADC plot after PID
         psIntHist_PID->Fill(psIntADC);
-        muIntHist_PID->Fill(muIntADC);
     }
 
-    std::string outFile = "/u/user/swkim/pre-exercise/dual-readout_TB/analysis/auxPID/auxPID_Run_" + std::to_string(runNum) + ".root";
+    std::string outFile = "./auxPID/auxPID_Run_" + std::to_string(runNum) + ".root";
     TFile* outputRoot = new TFile(outFile.c_str(), "RECREATE");
     outputRoot->cd();
 
-    // Fit functions
-    TF1* psFitFunc = new TF1("psFitFunc", "gaus", 9000, 15000); // This range need to be optimized to give best Chi2/NDF after fitting PS int. ADC
-    // TF1* muFitFunc = new TF1("muFitFunc", "gaus", 5000, 21000);
-
+    // Fit function for fitting 1-mip peak of pre-shower detector
+    // The range 9000~15000 need to be optimized to give best Chi2/NDF after fitting PS int. ADC
+    // Exercise 3 : Referring to README.md, find more proper fit function range using Chi2/NDF value
+    
+    TF1* psFitFunc = new TF1("psFitFunc", "gaus", 9000, 15000);
+    // TF1* psFitFunc = new TF1("psFitFunc", "gaus", , ); // Your answer here. Comment out the line above and use your fit function.
+    
     psIntHist->Write();
     psIntHist_PID->Fit("psFitFunc", "R");
     psIntHist_PID->Write();
     psFitFunc->Write();
-
-    muIntHist->Write();
-    // muIntHist_PID->Fit("muFitFunc", "R");
-    muIntHist_PID->Write();
-    // muFitFunc->Write();
 
     dwc1_pos->Write();
     dwc2_pos->Write();
