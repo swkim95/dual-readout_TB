@@ -60,8 +60,8 @@ int main(int argc, char** argv) {
     TH1F* M1T1SHist = new TH1F("M1T1SAvgTime", "M1T1SAvgTime", 1000, 0, 1000);
     TH2D* dwc1_correctedPos = new TH2D("dwc1_correctedPos", "dwc1_correctedPos;mm;mm;events", 480, -120., 120., 480, -120., 120.);
     TH2D* dwc2_correctedPos = new TH2D("dwc2_correctedPos", "dwc2_correctedPos;mm;mm;events", 480, -120., 120., 480, -120., 120.);
-    TH2D* dwc_x_corr_PID = new TH2D("dwc_x_corr_PID", "dwc_x_corr_PID;mm;mm;events", 480, -120., 120., 480, -120., 120.);
-    TH2D* dwc_y_corr_PID = new TH2D("dwc_y_corr_PID", "dwc_y_corr_PID;mm;mm;events", 480, -120., 120., 480, -120., 120.);
+    TH2D* dwc1_correctedPos_PID = new TH2D("dwc1_correctedPos_PID", "dwc1_correctedPos_PID;mm;mm;events", 480, -120., 120., 480, -120., 120.);
+    TH2D* dwc2_correctedPos_PID = new TH2D("dwc2_correctedPos_PID", "dwc2_correctedPos_PID;mm;mm;events", 480, -120., 120., 480, -120., 120.);
 
     /*
     In this exercise, we need info from DWC (For giving correlation cut), pre-shower and M1T1 S, C channels (for drawing average time structure)

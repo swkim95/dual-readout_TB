@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
         float dwc1_Vertical_Offset = -0.053701300;
 
         float dwc1_x_position = ( (float) (dwc1_peak_R - dwc1_peak_L ) * dwc1_horizontal_Slope) + dwc1_horizontal_Offset;
-        float dwc1_y_position = ( (float) (dwc1_peak_U - dwc1_peak_D ) * dwc1_vertical_Slope)   + dwc1_vertical_Offset;
+        float dwc1_y_position = ( (float) (dwc1_peak_U - dwc1_peak_D ) * dwc1_Vertical_Slope)   + dwc1_Vertical_Offset;
 
         // Exercise 5 : Get DWC2 position from its peak timing values
         float dwc2_horizontal_Slope = 0.17257273;
