@@ -52,7 +52,7 @@ ssh <username>@idream.knu.ac.kr
 #### How to compile framework
 ```sh
 # On your working directory, clone preEx_students branch
-git clone -b preEx_students
+git clone -b preEx_students https://github.com/swkim95/dual-readout_TB.git
 
 # In dual-readout_TB directory, run installation script
 cd dual-readout_TB
