@@ -1,7 +1,7 @@
 # dual-readout_TB
 
 FWcore for TB data analysis and pre-exercise scripts for [2023 Feb DRC workshop @GWNU](https://indico.cern.ch/event/1238214/timetable/?view=standard)\
-For any questions / feedback, please contact : sungwon.kim@cern.ch
+For any questions / feedback, please contact : sungwon.kim@cern.ch or join our group chat (link announced via KFC mail)
 
 ---
 - [dual-readout\_TB](#dual-readout_tb)
