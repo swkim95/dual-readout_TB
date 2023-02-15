@@ -27,6 +27,7 @@ For any questions / feedback, please contact : sungwon.kim@cern.ch or join our g
       - [2. Write HTcondor execution script : exe\_condor.sh](#2-write-htcondor-execution-script--exe_condorsh)
       - [3. Submit condor batch jobs using condor\_submit](#3-submit-condor-batch-jobs-using-condor_submit)
   - [5) Troubleshooting](#5-troubleshooting)
+      - [Exercise script compile error](#exercise-script-compile-error)
       - [g++ error while compiling anaylsis scripts](#g-error-while-compiling-anaylsis-scripts)
       - [Library error while running executable (same solution as above)](#library-error-while-running-executable-same-solution-as-above)
       - [Environment setup](#environment-setup)
@@ -75,6 +76,7 @@ source compile.sh <analysis code in cpp>
 # If you want to compile TBdrawWave.cc script
 e.g.) source compile.sh TBdrawWave # This will generate TBdrawWave.exe
 ```
+>__Warning__ You have to solve exercises in the analysis script first before compiling it!!!
 
 #### How to run each analysis executable
 ```sh
@@ -127,6 +129,8 @@ e.g.) ./TBdrawWave.exe 702 1000
     ![img desc](./doc/ntuple_dir.png)
 - `TBntupler.py` : Read raw data (.dat format) and create ntuples (.root format)
 - `TBvalidator.py` : Read both raw data and ntulple, and compare their contents to make sure everything is well copied to ntuple
+
+>__Note__ For ntupler and validator, one does not need to compile them for running it
 
 - **How to run ntupler**
     ```sh
@@ -205,7 +209,7 @@ e.g.) ./TBdrawWave.exe 702 1000
 
 - In this exercise, we'll use `TBdrawWave.cc` script in `/dual-readout_TB/analysis`
 
-- Detailed instructions are available in `TBdrawWave.cc` script itself
+- Detailed instructions are available in `TBdrawWave.cc` script itself. Please open it and solve exercises in it!
 
 >__Warning__ TBdrawwave.exe will draw waveform event by event!! Please run maximum of 1000 events.
 
@@ -221,13 +225,13 @@ e.g.) ./TBdrawWave.exe 702 1000
 
 #### 3. Draw DWC position plot using waveform ntuples
 - Before starting this exercise
-  1. Please check the plots created in exercise 1 if their appropriate or not
+  1. Please check the plots created in exercise 1, and check if they are appropriate or not
   2. Please create `dwc/` directory in `/dual-readout_TB/analysis/`
     ```sh
     # In dual-readout_TB/analysis/ directory, create dwc
     mkdir dwc
     ```
-  3. Please read [DWC manual ch 1 ~ 4](https://twiki.cern.ch/twiki/pub/DREAM/DwcCalibration/DWC_calibration.pdf) for better understanding
+  3. Please read [DWC manual ch 1 ~ 4](https://twiki.cern.ch/twiki/pub/DREAM/DwcCalibration/DWC_calibration.pdf) for better understanding about DWC detector
 
 - In this exercise, students will learn
     - How to get peak timing from waveform
@@ -236,7 +240,7 @@ e.g.) ./TBdrawWave.exe 702 1000
 
 - In this exercise, we'll use `TBdwc.cc` script in `/dual-readout_TB/analysis`
 
-- Detailed instructions are available in `TBdwc.cc` script itself and [in this pdf](https://twiki.cern.ch/twiki/pub/DREAM/DwcCalibration/DWC_calibration.pdf)
+- Detailed instructions are available in `TBdwc.cc` script itself and [in this pdf](https://twiki.cern.ch/twiki/pub/DREAM/DwcCalibration/DWC_calibration.pdf). Please open the code and follow instructions in it to solve the problem!
 
 - After filling all your answers in `TBdwc.cc`, compile it and run it to save DWC plots
     ```sh
@@ -276,7 +280,7 @@ e.g.) ./TBdrawWave.exe 702 1000
 
 - In this exercise, we'll use `TBavgTimeStructure.cc` script in `/dual-readout_TB/analysis`
 
-- Detailed instructions are available in `TBavgTimeStructure.cc` script itself
+- Detailed instructions are available in `TBavgTimeStructure.cc` script itself. Please open it and solve the exercise problems.
 
 - After filling all your answers in `TBavgTimeStructure.cc`, compile it and run it to save average time structure root file
     ```sh
@@ -327,7 +331,7 @@ e.g.) ./TBdrawWave.exe 702 1000
 
 - In this exercise, we'll use `TBauxPID.cc` script in `/dual-readout_TB/analysis`
 
-- Detailed instructions are available in `TBauxPID.cc` script itself
+- Detailed instructions are available in `TBauxPID.cc` script itself. Please open the code and solve exercise problem!
 
 - After filling all your answers in `TBauxPID.cc`, compile it and run it to save root file with pre-shower int. ADC plot
     ```sh
@@ -380,7 +384,7 @@ e.g.) ./TBdrawWave.exe 702 1000
 
 - In this exercise, we'll use `TBintADC.cc` script in `/dual-readout_TB/analysis`
 
-- Detailed instructions are available in `TBintADC.cc` script itself
+- Detailed instructions are available in `TBintADC.cc` script itself. Please open the code and solve the exercises!
 
 - After filling all your answers in `TBintADC.cc`, compile it and run it to save root file with int. ADC of modules
     ```sh
@@ -476,6 +480,11 @@ condor_q
 
 ---
 ## 5) Troubleshooting
+#### Exercise script compile error
+![ex comp err](./doc/exercise_compile_error.png)
+- One need to solve all the exercises before compiling it!
+- Open the exercise code, find lines with `// Your answer here` and fill in the blanks
+
 #### g++ error while compiling anaylsis scripts 
 ![image desc](./doc/g%2B%2B_error.png)
 - Make sure that you set environment variable everytime you access to the server
