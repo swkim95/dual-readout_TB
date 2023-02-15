@@ -207,6 +207,8 @@ e.g.) ./TBdrawWave.exe 702 1000
 
 - Detailed instructions are available in `TBdrawWave.cc` script itself
 
+>__Warning__ TBdrawwave.exe will draw waveform event by event!! Please run maximum of 1000 events.
+
 - After filling all your answers in `TBdrawWave.cc`, compile it and run it to save waveform plots
     ```sh
     # For example, after finishing exercises in TBdrawWave.cc, to draw 100 waveform plots from Run702 ntuple
