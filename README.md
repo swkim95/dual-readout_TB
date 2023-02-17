@@ -194,7 +194,7 @@ e.g.) ./TBxxx.exe 702 1000
     std::string filePath = "/gatbawi/dream/ntuple/waveform/Run_"  + std::to_string(runNumber) + "/" + fileName;
 
     // For example, if your waveform ntuples are created in /u/user/swkim/dual-readout_TB/ntuples/Run_$(Run_number)/Wave/ntuple_Run_$(Run_number)_Wave_$(File_number).root
-    std::string filePath = "/u/user/swkim/dual-readout_TB/ntuples/waveform/Run_"  + std::to_string(runNumber) + "/Wave/" + fileName;
+    std::string filePath = "/u/user/swkim/dual-readout_TB/ntuples/Run_"  + std::to_string(runNumber) + "/Wave/" + fileName;
     ```
   2. Please create `waveform/` , `waveform/PS/`, `waveform/C/`, `waveform/S/` directories in `/dual-readout_TB/analysis/`
     ```sh
