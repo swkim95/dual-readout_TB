@@ -73,18 +73,19 @@ source envset.sh
 cd analysis
 source compile.sh <analysis code in cpp>
 
-# If you want to compile TBdrawWave.cc script
-e.g.) source compile.sh TBdrawWave # This will generate TBdrawWave.exe
+# If you want to compile TBxxx.cc script
+e.g.) source compile.sh TBxxx # This will generate TBxxx.exe
 ```
->__Warning__ You have to solve exercises in the analysis script first before compiling it!!!
+>__Warning__ You have to solve exercises in the analysis script first before compiling it!!\
+Also, please make your own Ntuple before running any analysis script (details in Pre-exercise section)
+
 
 #### How to run each analysis executable
 ```sh
 ./<analysis executable in exe> <run number> <maximum number of events to run>
 
-# If you want to run TBdrawWave to draw waveform of
-# 1k events from  Run702 ntuples
-e.g.) ./TBdrawWave.exe 702 1000 
+# If you want to run TBxxx with 1k events from  Run702 ntuples
+e.g.) ./TBxxx.exe 702 1000 
 ```
 
 ---
@@ -154,6 +155,7 @@ e.g.) ./TBdrawWave.exe 702 1000
     ```
 
 - **How to run validator**
+    >__Warning__ Running validator with 10k events Run will take about ~5 hours to complete. One may run validator on background and proceed to next exercises.
     ```sh
     # Run after setting environment variables
 
@@ -183,7 +185,7 @@ e.g.) ./TBdrawWave.exe 702 1000
 
 #### 2. Draw single channel waveform from ntuples
 - Before starting this exercise
-  1. Please fix `/dual-readout_TB/analysis/functionc.cc` file path
+  1. Please fix `/dual-readout_TB/analysis/functions.cc` file path
     ```cpp
     // In functions.cc Line 26
 
@@ -191,8 +193,8 @@ e.g.) ./TBdrawWave.exe 702 1000
     // Default value is :
     std::string filePath = "/gatbawi/dream/ntuple/waveform/Run_"  + std::to_string(runNumber) + "/" + fileName;
 
-    // For example, if your waveform ntuples are created in /u/user/swkim/dual-readout_TB/ntuples/waveform/
-    std::string filePath = "/u/user/swkim/dual-readout_TB/ntuples/waveform/Run_"  + std::to_string(runNumber) + "/" + fileName;
+    // For example, if your waveform ntuples are created in /u/user/swkim/dual-readout_TB/ntuples/Run_$(Run_number)/Wave/ntuple_Run_$(Run_number)_Wave_$(File_number).root
+    std::string filePath = "/u/user/swkim/dual-readout_TB/ntuples/waveform/Run_"  + std::to_string(runNumber) + "/Wave/" + fileName;
     ```
   2. Please create `waveform/` , `waveform/PS/`, `waveform/C/`, `waveform/S/` directories in `/dual-readout_TB/analysis/`
     ```sh
@@ -211,7 +213,7 @@ e.g.) ./TBdrawWave.exe 702 1000
 
 - Detailed instructions are available in `TBdrawWave.cc` script itself. Please open it and solve exercises in it!
 
->__Warning__ TBdrawwave.exe will draw waveform event by event!! Please run maximum of 1000 events.
+>__Warning__ TBdrawwave.exe will save waveform image event by event!! Please run maximum of 1000 events.
 
 - After filling all your answers in `TBdrawWave.cc`, compile it and run it to save waveform plots
     ```sh
