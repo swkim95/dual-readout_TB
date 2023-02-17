@@ -213,7 +213,7 @@ e.g.) ./TBxxx.exe 702 1000
 
 - Detailed instructions are available in `TBdrawWave.cc` script itself. Please open it and solve exercises in it!
 
->__Warning__ TBdrawwave.exe will save waveform image event by event!! Please run maximum of 1000 events.
+>__Warning__ TBdrawWave.exe will save waveform image event by event!! Please run maximum of 1000 events.
 
 - After filling all your answers in `TBdrawWave.cc`, compile it and run it to save waveform plots
     ```sh
