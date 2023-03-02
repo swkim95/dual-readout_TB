@@ -99,7 +99,7 @@ e.g.) ./TBxxx.exe 702 1000
 | **700** |      20      |    e+    |     M1T3     | MCP-PMT |     **50036**      |     **49984**      |
 | **704** |      20      |    e+    |     M1T4     |   PMT   |     **50020**      |     **49984**      |
 >__Note__ For more details about run, see the run list documentation and DAQ log in below links.\
-[Run list](https://docs.google.com/spreadsheets/d/1NsoHoRA0b18hth2E2DQ_U_OjmwK_VHr3/edit?usp=sharing&ouid=117548372861877042914&rtpof=true&sd=true)\
+[Run list](https://docs.google.com/spreadsheets/d/10W4B2Zf2D27pCLkIICKF_VY2HcQZOb1e/edit?usp=sharing&ouid=117548372861877042914&rtpof=true&sd=true)\
 [DAQ log](https://docs.google.com/spreadsheets/d/1Cfoetfduc2Tb8mBhA6O9rtuxci5SGBaZw9uualKWfUA/edit#gid=262558796)
 
 ### Data paths in iDream server
@@ -519,7 +519,7 @@ export PYTHONPATH=$PYTHONPATH:<path_to_install>/lib64 # or lib based on your arc
 ## 6) Useful links
 [2023 DRC workshop @GWNU indico](https://indico.cern.ch/event/1238214/timetable/?view=standard)\
 [2022 TB @ CERN main documentation page](https://docs.google.com/document/d/13-dYgLaBQg3d9drPBWCKbW1INf3dPyZcV-TeA5QGHj0/edit#)\
-[Run list](https://docs.google.com/spreadsheets/d/1NsoHoRA0b18hth2E2DQ_U_OjmwK_VHr3/edit?usp=sharing&ouid=117548372861877042914&rtpof=true&sd=true)\
+[Run list](https://docs.google.com/spreadsheets/d/10W4B2Zf2D27pCLkIICKF_VY2HcQZOb1e/edit?usp=sharing&ouid=117548372861877042914&rtpof=true&sd=true)\
 [DAQ log](https://docs.google.com/spreadsheets/d/1Cfoetfduc2Tb8mBhA6O9rtuxci5SGBaZw9uualKWfUA/edit#gid=262558796)\
 [Mapping info](https://docs.google.com/spreadsheets/d/1ZFLbl-4OOqhWQlKlCitL4Pl__JsoVFMME0hQWy3N-M8/edit#gid=257337700)\
 [DWC info](https://twiki.cern.ch/twiki/pub/DREAM/DwcCalibration/DWC_calibration.pdf)\
